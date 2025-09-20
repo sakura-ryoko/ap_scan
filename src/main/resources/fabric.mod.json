@@ -1,0 +1,29 @@
+{
+	"schemaVersion": 1,
+	"id": "ap_scan",
+	"version": "${mod_version}",
+	"name": "AP Scan",
+	"description": "AP Scan",
+	"authors": [
+		"Sakura-Ryoko"
+	],
+	"contact": {
+		"homepage": "https://sakuraryoko.com/",
+		"sources": "https://sakuraryoko.com/"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/ap_scan/icon.png",
+	"environment": "server",
+	"entrypoints": {
+		"main": [
+            "com.sakuraryoko.ap_scan.ApScan"
+		]
+	},
+	"mixins": [
+		"ap_scan.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.8"
+	}
+}
