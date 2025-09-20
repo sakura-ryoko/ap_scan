@@ -11,7 +11,7 @@
 		"homepage": "https://sakuraryoko.com/",
 		"sources": "https://sakuraryoko.com/"
 	},
-	"license": "CC0-1.0",
+	"license": "LGPLv3",
 	"icon": "assets/ap_scan/icon.png",
 	"environment": "server",
 	"entrypoints": {
@@ -22,6 +22,7 @@
 	"mixins": [
 		"ap_scan.mixins.json"
 	],
+    "accessWidener": "ap_scan.accesswidener",
 	"depends": {
 		"fabricloader": ">=0.17.2",
 		"minecraft": "~1.21.8"

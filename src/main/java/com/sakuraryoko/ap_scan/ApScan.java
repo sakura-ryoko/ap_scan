@@ -12,6 +12,13 @@ public class ApScan implements ModInitializer
 	@Override
 	public void onInitialize()
 	{
-		LOGGER.info("Hello Fabric world!");
+	}
+
+	public static void debugLog(String str, Object... args)
+	{
+		if (Reference.DEBUG)
+		{
+			LOGGER.info(str, args);
+		}
 	}
 }

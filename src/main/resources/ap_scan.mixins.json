@@ -1,12 +1,18 @@
 {
-	"required": true,
-	"package": "com.sakuraryoko.ap_scan.mixin",
-	"compatibilityLevel": "JAVA_21",
-	"mixins": [],
-	"injectors": {
-		"defaultRequire": 1
-	},
-	"overwrites": {
-		"requireAnnotations": true
+    "required": true,
+    "package": "com.sakuraryoko.ap_scan.mixin",
+    "compatibilityLevel": "JAVA_21",
+    "mixins": [
+        "IMixinNbtReadView",
+        "IMixinNbtWriteView",
+        "MixinMain",
+        "MixinWorldUpdater_Entities",
+        "MixinWorldUpdater_RegionUpdate"
+    ],
+    "injectors": {
+        "defaultRequire": 1
+    },
+    "overwrites": {
+        "requireAnnotations": true
 	}
 }

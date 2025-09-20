@@ -1,6 +1,5 @@
 plugins {
 	id 'fabric-loom' version '1.11-SNAPSHOT'
-	id 'maven-publish'
 }
 
 repositories {
@@ -39,14 +38,14 @@ loom {
 	// [FEATURE] MIXIN_AUDITOR
 	runs {
 		def auditVmArgs = [*commonVmArgs, '-DmixinAuditor.audit=true']
-		clientMixinAudit {
-			client()
+		serverMixinAudit {
+			server()
 			vmArgs auditVmArgs
 			ideConfigGenerated false
 		}
 	}
 
-//	accessWidenerPath = file("src/main/resources/malilib.accesswidener")
+	accessWidenerPath = file("src/main/resources/ap_scan.accesswidener")
 }
 
 processResources {
@@ -90,25 +89,7 @@ java {
 }
 
 jar {
-	from("LICENSE") {
+	from("LICENSE.txt") {
 		rename { "${it}_${base.archivesName}"}
-	}
-}
-
-tasks.publish.dependsOn build
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			// add all the jars that should be included when publishing to maven
-			//artifact(jar)             { builtBy remapJar }
-			artifactId = base.archivesName.get()
-			from components.java
-		}
-	}
-
-	repositories {
-		maven {
-			url = "$projectDir/../../CommonMaven"
-		}
 	}
 }

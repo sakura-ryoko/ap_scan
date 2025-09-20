@@ -1,1 +1,0 @@
-package com.sakuraryoko.ap_scan.mixin;
