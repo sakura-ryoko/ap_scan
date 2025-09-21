@@ -2,6 +2,8 @@ package com.sakuraryoko.ap_scan.util;
 
 /**
  * NBT Tag Constants Collection.
+ **********************-
+ * Cloned from MaLiLib
  */
 public class NbtKeys
 {

@@ -18,11 +18,16 @@ public class DirectoryData
 
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, AUDIO_FILE_FILTER))
 		{
+			int count = 0;
+
 			for (Path entry : stream)
 			{
 				String cleanName = entry.getFileName().toString().replace(".mp3", "").replace(".wav", "");
 				DataManager.getInstance().getPathList().add(new AudioFile(cleanName, "Directory Listing"));
+				count++;
 			}
+
+			ApScan.LOGGER.info("DirectoryData: Found {} audio file(s).", count);
 		}
 		catch (Exception err)
 		{

@@ -25,6 +25,8 @@ import com.sakuraryoko.ap_scan.ApScan;
  * This makes reading / Writing Inventories to / from NBT a piece of cake.
  * Supports Inventory, Nbt, or DefaultList<> interfaces; and uses the newer Mojang
  * 'StackWithSlot' system.
+ *********************** -
+ * Cloned from MaLiLib
  */
 public class NbtInventory implements AutoCloseable
 {

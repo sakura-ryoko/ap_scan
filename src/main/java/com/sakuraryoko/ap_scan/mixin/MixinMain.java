@@ -21,6 +21,7 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.Reference;
 import com.sakuraryoko.ap_scan.data.DataManager;
 import com.sakuraryoko.ap_scan.event.ProcessEvents;
@@ -37,9 +38,14 @@ public class MixinMain
 		boolean hasForceUpgrade = false;
 		boolean hasEraseCache = false;
 		boolean hasRecreateRegionFiles = false;
+		boolean hasRunReports = false;
+		boolean hasStopServer = false;
+		boolean hasReportName = false;
 
-		for (String entry : value)
+		for (int i = 0; i < value.length; i++)
 		{
+			String entry = value[i];
+
 			if (entry.equalsIgnoreCase("--forceUpgrade"))
 			{
 				hasForceUpgrade = true;
@@ -52,30 +58,76 @@ public class MixinMain
 			{
 				hasRecreateRegionFiles = true;
 			}
+			else if (entry.equalsIgnoreCase(DataManager.RUN_REPORTS_PARAM))
+			{
+				DataManager.getInstance().toggleRunReports();
+				hasRunReports = true;
+			}
+			else if (entry.equalsIgnoreCase(DataManager.STOP_SERVER_PARAM))
+			{
+				DataManager.getInstance().toggleStopServer();
+				hasStopServer = true;
+			}
+			else if (entry.equalsIgnoreCase(DataManager.REPORT_NAME_PARAM))
+			{
+				if (value.length > (i + 1))
+				{
+					DataManager.getInstance().setReportName(value[++i]);
+				}
+				else
+				{
+					ApScan.LOGGER.error("Report Name Param exception; Out of bounds.");
+				}
+
+				hasReportName = true;
+			}
 		}
 
 		if (hasForceUpgrade || hasRecreateRegionFiles)
 		{
-			LOGGER.info("{} -- No changed required.", logPrefix);
-			ProcessEvents.onPostArguments();
+			if (DataManager.getInstance().shouldRunReports())
+			{
+				LOGGER.info("{} -- No changed required.", logPrefix);
+				ProcessEvents.onPostArguments();
+			}
 
 			return value;
 		}
 		else
 		{
-			List<String> list = new java.util.ArrayList<>(Arrays.stream(value).toList());
-
-			list.add("--recreateRegionFiles");
-
-			if (!hasEraseCache)
+			if (DataManager.getInstance().shouldRunReports())
 			{
-				list.add("--eraseCache");
+				List<String> list = new java.util.ArrayList<>(Arrays.stream(value).toList());
+
+				list.add("--recreateRegionFiles");
+
+				if (!hasEraseCache)
+				{
+					list.add("--eraseCache");
+				}
+
+				if (hasStopServer)
+				{
+					list.remove(DataManager.STOP_SERVER_PARAM);
+				}
+				if (hasRunReports)
+				{
+					list.remove(DataManager.RUN_REPORTS_PARAM);
+				}
+				if (hasReportName)
+				{
+					list.remove(DataManager.REPORT_NAME_PARAM);
+				}
+
+				LOGGER.warn("{} -- Arguments appended.", logPrefix);
+				ProcessEvents.onPostArguments();
+
+				return list.toArray(new String[0]);
 			}
-
-			LOGGER.warn("{} -- Arguments appended.", logPrefix);
-			ProcessEvents.onPostArguments();
-
-			return list.toArray(new String[0]);
+			else
+			{
+				return value;
+			}
 		}
 	}
 
@@ -84,7 +136,11 @@ public class MixinMain
 					   target = "Lnet/minecraft/world/level/storage/LevelStorage;create(Ljava/nio/file/Path;)Lnet/minecraft/world/level/storage/LevelStorage;"))
 	private static LevelStorage onCaptureRootPath(Path path)
 	{
-		DataManager.getInstance().updateRootPath(path, true);
+		if (DataManager.getInstance().shouldRunReports())
+		{
+			DataManager.getInstance().updateRootPath(path, true);
+
+		}
 		return LevelStorage.create(path);
 	}
 
@@ -93,15 +149,28 @@ public class MixinMain
 					 target = "Lnet/minecraft/world/level/storage/LevelStorage;createSession(Ljava/lang/String;)Lnet/minecraft/world/level/storage/LevelStorage$Session;"))
 	private static LevelStorage.Session onCaptureWorldPath(LevelStorage instance, String directoryName)
 	{
+		if (DataManager.getInstance().shouldRunReports())
+		{
+			try
+			{
+				DataManager.getInstance().updateWorldPath(instance.getSavesDirectory().resolve(directoryName), true);
+				ProcessEvents.onCaptureWorldPath();
+				return instance.createSession(directoryName);
+			}
+			catch (Exception err)
+			{
+				LOGGER.error("{} -- LevelStorage.Session failed to be captured.", logPrefix);
+				System.exit(1);
+			}
+		}
+
 		try
 		{
-			DataManager.getInstance().updateWorldPath(instance.getSavesDirectory().resolve(directoryName), true);
-			ProcessEvents.onCaptureWorldPath();
 			return instance.createSession(directoryName);
 		}
 		catch (Exception err)
 		{
-			LOGGER.error("{} -- LevelStorage.Session failed to be captured.", logPrefix);
+			LOGGER.error("{} -- Vanilla Exception; {}", logPrefix, err.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -113,15 +182,25 @@ public class MixinMain
 					 target = "Lnet/minecraft/world/level/storage/LevelStorage$Session;backupLevelDataFile(Lnet/minecraft/registry/DynamicRegistryManager;Lnet/minecraft/world/SaveProperties;)V"), cancellable = true)
 	private static void onLaunchCancel(String[] args, CallbackInfo ci)
 	{
-		LOGGER.error("{} -- TASK COMPLETE.", logPrefix);
-		ProcessEvents.onShutdown();
-		ci.cancel();
-		System.exit(0);
+		if (DataManager.getInstance().shouldRunReports())
+		{
+			LOGGER.error("{} -- TASK COMPLETE.", logPrefix);
+			ProcessEvents.onShutdown();
+
+			if (DataManager.getInstance().shouldStopServer())
+			{
+				ci.cancel();
+				System.exit(0);
+			}
+		}
 	}
 
 	@Inject(method = "forceUpgradeWorld", at = @At("HEAD"))
 	private static void onCaptureImmutable(LevelStorage.Session session, SaveProperties saveProperties, DataFixer dataFixer, boolean eraseCache, BooleanSupplier continueCheck, DynamicRegistryManager registries, boolean recreateRegionFiles, CallbackInfo ci)
 	{
-		DataManager.getInstance().setRegistry(registries);
+		if (DataManager.getInstance().shouldRunReports())
+		{
+			DataManager.getInstance().setRegistry(registries);
+		}
 	}
 }

@@ -1,10 +1,12 @@
 package com.sakuraryoko.ap_scan.audio;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
+import com.google.common.collect.Iterables;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import org.jetbrains.annotations.Nullable;
 
 import com.sakuraryoko.ap_scan.ApScan;
 
@@ -17,8 +19,73 @@ public class AudioFileList
 		this.files = new ArrayList<>();
 	}
 
+	public boolean contains(String id)
+	{
+		AtomicBoolean bool = new AtomicBoolean(false);
+
+		this.files.forEach(
+				(entry) ->
+				{
+					if (entry.getId().equalsIgnoreCase(id))
+					{
+						bool.set(true);
+					}
+				}
+		);
+
+		return bool.get();
+	}
+
+	@Nullable
+	public AudioFile getById(String id)
+	{
+		for (AudioFile entry : this.files)
+		{
+			if (entry.getId().equalsIgnoreCase(id))
+			{
+				return entry;
+			}
+		}
+
+		return null;
+	}
+
+	@Nullable
+	public AudioFile getByUuid(UUID uuid)
+	{
+		return this.getById(uuid.toString());
+	}
+
+	@Nullable
+	public AudioFile get(int index)
+	{
+		if (index > -1 && index < this.size())
+		{
+			return this.files.get(index);
+		}
+
+		return null;
+	}
+
+	public void set(int index, AudioFile file) throws IndexOutOfBoundsException
+	{
+		if (index > -1 && index < this.size())
+		{
+		}
+		else
+		{
+			throw new IndexOutOfBoundsException("index "+index+" out of bounds for a list of size '"+this.size()+"'");
+		}
+	}
+
 	public void add(AudioFile file)
 	{
+		// Don't duplicate
+		if (this.contains(file.getId()))
+		{
+			return;
+		}
+
 		this.files.add(file);
 	}
 
@@ -30,6 +97,16 @@ public class AudioFileList
 	public boolean isEmpty() { return this.files.isEmpty(); }
 
 	public int size() { return this.files.size(); }
+
+	public Iterable<AudioFile> iterator()
+	{
+		return Iterables.concat(this.files);
+	}
+
+	public Stream<AudioFile> stream()
+	{
+		return this.files.stream();
+	}
 
 	public void clear() { this.files.clear(); }
 

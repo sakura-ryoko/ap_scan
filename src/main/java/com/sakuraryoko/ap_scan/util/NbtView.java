@@ -22,6 +22,8 @@ import com.sakuraryoko.ap_scan.mixin.IMixinNbtWriteView;
 /**
  * This is a wrapper to the new "ReadView / WriteView" that Mojang made; and provides a seamless way to extract an NbtCompound to / from it.
  * This Wrapper also 'manages' the ErrorReporter for you.
+ ***********************-
+ * Cloned from MaLiLib
  */
 public class NbtView
 {

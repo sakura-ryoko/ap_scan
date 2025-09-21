@@ -49,8 +49,8 @@ public class IDList
 			"minecraft:barrel",
 			"minecraft:trapped_chest",
 			"minecraft:decorated_pot",
-			"minecraft:crafter",
 
+			"minecraft:crafter",
 			"minecraft:furnace",
 			"minecraft:smoker",
 			"minecraft:blast_furnace"

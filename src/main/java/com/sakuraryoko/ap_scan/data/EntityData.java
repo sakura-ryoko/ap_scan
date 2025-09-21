@@ -4,7 +4,7 @@ import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.DynamicRegistryManager;
 
-import com.sakuraryoko.ap_scan.audio.AudioNbtUtil;
+import com.sakuraryoko.ap_scan.audio.NbtAudioUtil;
 import com.sakuraryoko.ap_scan.util.InventoryUtils;
 
 public class EntityData
@@ -27,7 +27,7 @@ public class EntityData
 		// Filter out all the unwanted Entity Types
 		if (IDList.ENTITY_ID_LIST.contains(id) && InventoryUtils.hasNbtItems(nbt))
 		{
-			AudioNbtUtil.processEachInventory(nbt, registry);
+			NbtAudioUtil.processEachNbt(nbt, registry);
 		}
 	}
 }

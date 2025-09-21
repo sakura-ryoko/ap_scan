@@ -1,5 +1,8 @@
 package com.sakuraryoko.ap_scan.util;
 
+/**
+ * Cloned from MaLiLib
+ */
 public class Constants
 {
     public static class NBT

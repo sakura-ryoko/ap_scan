@@ -1,9 +1,15 @@
 package com.sakuraryoko.ap_scan.util;
 
+import java.util.Iterator;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.apache.commons.lang3.math.Fraction;
+
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.BundleContentsComponent;
+import net.minecraft.component.type.ContainerComponent;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.item.ItemStack;
@@ -12,9 +18,225 @@ import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.util.collection.DefaultedList;
 
+/**
+ * Cloned from MaLiLib
+ */
 public class InventoryUtils
 {
+	/**
+	 * Returns the list of items currently stored in the given Shulker Box
+	 * (or other storage item with the same NBT data structure).
+	 * Does not keep empty slots.
+	 *
+	 * @param stackIn The item holding the inventory contents
+	 * @return ()
+	 */
+	public static DefaultedList<ItemStack> getStoredItems(ItemStack stackIn)
+	{
+		ContainerComponent container = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
+
+		if (container != null)
+		{
+			Iterator<ItemStack> iter = container.streamNonEmpty().iterator();
+			DefaultedList<ItemStack> items = DefaultedList.ofSize((int) container.streamNonEmpty().count());
+			int i = 0;
+
+			// Using 'container.copyTo(items)' will break Litematica's Material List
+			while (iter.hasNext())
+			{
+				items.add(iter.next().copy());
+				i++;
+			}
+
+			return items;
+		}
+
+		return DefaultedList.of();
+	}
+
+	/**
+	 * Returns the list of items currently stored in the given Shulker Box
+	 * (or other storage item with the same NBT data structure).
+	 * Preserves empty slots.
+	 *
+	 * @param stackIn   The item holding the inventory contents
+	 * @param slotCount the maximum number of slots, and thus also the size of the list to create
+	 * @return ()
+	 */
+	public static DefaultedList<ItemStack> getStoredItems(ItemStack stackIn, int slotCount)
+	{
+		ContainerComponent itemContainer = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
+
+		// Using itemContainer.copyTo() does not preserve empty stacks.
+		if (itemContainer != null)
+		{
+			long defSlotCount = itemContainer.stream().count();
+
+			// ContainerComponent.MAX_SLOTS = 256
+			if (slotCount < 1)
+			{
+				slotCount = defSlotCount < 256 ? (int) defSlotCount : 256;
+			}
+			else
+			{
+				slotCount = Math.min(slotCount, 256);
+			}
+
+			DefaultedList<ItemStack> items = DefaultedList.ofSize(slotCount);
+			Iterator<ItemStack> iter = itemContainer.stream().iterator();
+
+			for (int i = 0; i < slotCount; i++)
+			{
+				ItemStack entry;
+
+				if (iter.hasNext())
+				{
+					entry = iter.next();
+				}
+				else
+				{
+					entry = ItemStack.EMPTY;
+				}
+
+				items.add(entry.copy());
+//                LOGGER.debug("getStoredItems()[{}] entry [{}], items [{}]", i, entry.toString(), items.get(i).toString());
+			}
+
+			return items;
+		}
+		else
+		{
+			return DefaultedList.of();
+		}
+	}
+
+	/**
+	 * Returns whether a bundle item stack has Items
+	 * @param stack ()
+	 * @return ()
+	 */
+	public static boolean bundleHasItems(ItemStack stack)
+	{
+		BundleContentsComponent bundleContainer = stack.getComponents().get(DataComponentTypes.BUNDLE_CONTENTS);
+
+		if (bundleContainer != null)
+		{
+			return bundleContainer.isEmpty() == false;
+		}
+
+		return false;
+	}
+
+	/**
+	 * Returns a Fraction value, probably indicating fill % value, rather than an actual item count.
+	 *
+	 * @param stack ()
+	 * @return ()
+	 */
+	public static Fraction bundleOccupancy(ItemStack stack)
+	{
+		BundleContentsComponent bundleContainer = stack.getComponents().get(DataComponentTypes.BUNDLE_CONTENTS);
+
+		if (bundleContainer != null)
+		{
+			return bundleContainer.getOccupancy();
+		}
+
+		return Fraction.ZERO;
+	}
+
+	/**
+	 * Returns the "slot count" (Item Stacks) in the Bundle.
+	 *
+	 * @param stack ()
+	 * @return ()
+	 */
+	public static int bundleCountItems(ItemStack stack)
+	{
+		BundleContentsComponent bundleContainer = stack.getComponents().get(DataComponentTypes.BUNDLE_CONTENTS);
+
+		if (bundleContainer != null)
+		{
+			return bundleContainer.size();
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Returns a list of ItemStacks from the Bundle.  Does not preserve Empty Stacks.
+	 *
+	 * @param stackIn ()
+	 * @return ()
+	 */
+	public static DefaultedList<ItemStack> getBundleItems(ItemStack stackIn)
+	{
+		BundleContentsComponent bundleContainer = stackIn.getComponents().getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
+
+		if (bundleContainer != null && bundleContainer.equals(BundleContentsComponent.DEFAULT) == false)
+		{
+			int maxSlots = bundleContainer.size();
+			DefaultedList<ItemStack> items = DefaultedList.ofSize(maxSlots);
+			Iterator<ItemStack> iter = bundleContainer.stream().iterator();
+
+			while (iter.hasNext())
+			{
+				ItemStack slot = iter.next();
+
+				if (slot.isEmpty() == false)
+				{
+					items.add(slot.copy());
+				}
+			}
+
+			return items;
+		}
+
+		return DefaultedList.of();
+	}
+
+	/**
+	 * Returns a list of ItemStacks from the Bundle.  Preserves Empty Stacks up to maxSlots.
+	 *
+	 * @param stackIn ()
+	 * @param maxSlots ()
+	 * @return ()
+	 */
+	public static DefaultedList<ItemStack> getBundleItems(ItemStack stackIn, int maxSlots)
+	{
+		BundleContentsComponent bundleContainer = stackIn.getComponents().getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
+
+		if (bundleContainer != null && bundleContainer.equals(BundleContentsComponent.DEFAULT) == false)
+		{
+			int defMaxSlots = bundleContainer.size();
+
+			if (maxSlots < 1)
+			{
+				maxSlots = defMaxSlots;
+			}
+			else
+			{
+				maxSlots = maxSlots < 64 ? maxSlots : defMaxSlots;
+			}
+
+			DefaultedList<ItemStack> items = DefaultedList.ofSize(maxSlots);
+			Iterator<ItemStack> iter = bundleContainer.stream().iterator();
+			int limit = 0;
+
+			while (iter.hasNext() && limit < maxSlots)
+			{
+				items.add(iter.next().copy());
+				limit++;
+			}
+
+			return items;
+		}
+
+		return DefaultedList.of();
+	}
+
 	/**
 	 * Checks if the given NBT currently contains any items, using the NBT Items[] interface.
 	 *

@@ -3,8 +3,10 @@ package com.sakuraryoko.ap_scan.data;
 import java.nio.file.Path;
 
 import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.util.WorldSavePath;
 
 import com.sakuraryoko.ap_scan.ApScan;
+import com.sakuraryoko.ap_scan.Reference;
 import com.sakuraryoko.ap_scan.audio.AudioFileList;
 
 public class DataManager
@@ -12,80 +14,98 @@ public class DataManager
 	private static final DataManager INSTANCE = new DataManager();
 	public static DataManager getInstance() { return INSTANCE; }
 
+	public static final String RUN_REPORTS_PARAM			= "--runReports";
+	public static final String REPORT_NAME_PARAM			= "--reportName";
+	public static final String STOP_SERVER_PARAM			= "--stopServer";
+
 	public static final String ROOT_DEFAULT 				= ".";
 	public static final String WORLD_DEFAULT 				= "world";
 	public static final String AUDIO_PLAYER_DATA			= "audio_player_data";
 	public static final String AUDIO_PLAYER_CONFIG			= "file-name-mappings";
+	public static final String REPORTS_FOLDER				= "audioplayer_reports";
 
 	private DynamicRegistryManager registry;
 	private Path rootPath;
 	private Path worldPath;
 	private Path audioPath;
+	private Path playerDataPath;
+	private Path reportsPath;
+	private String reportName;
+	private boolean stopServer = true;
+	private boolean runReports = true;
 
-	private AudioFileList pathList;
+	private final AudioFileList pathList;
+	private final AudioFileList worldList;
 	private AudioFileList configList;
-	private AudioFileList worldList;
 
 	public DataManager()
 	{
 		Path dir = Path.of(ROOT_DEFAULT);
 		this.rootPath = dir;
 		this.updateWorldPath(dir.resolve(WORLD_DEFAULT), false);
+		this.updateReportsPath(null);
 		this.registry = DynamicRegistryManager.EMPTY;
-
+		this.reportName = Reference.MOD_ID+"-Report";
 		this.pathList = new AudioFileList();
 		this.configList = new AudioFileList();
 		this.worldList = new AudioFileList();
 	}
 
-	public Path getRootPath()
-	{
-		return this.rootPath;
-	}
+	public Path getRootPath() { return this.rootPath; }
 
-	public Path getWorldPath()
-	{
-		return this.worldPath;
-	}
+	public Path getWorldPath() { return this.worldPath; }
 
-	public Path getAudioPath()
-	{
-		return this.audioPath;
-	}
+	public Path getAudioPath() { return this.audioPath; }
 
-	public Path getAudioConfigFile()
-	{
-		return this.audioPath.resolve(AUDIO_PLAYER_CONFIG+".json");
-	}
+	public Path getAudioConfigFile() { return this.audioPath.resolve(AUDIO_PLAYER_CONFIG+".json"); }
+
+	public Path getPlayerDataPath() { return this.playerDataPath; }
+
+	public Path getReportsPath() { return this.reportsPath; }
 
 	public void updateRootPath(Path dir, boolean debugOk)
 	{
+		dir = dir.normalize();
+
 		if (debugOk)
 		{
 			ApScan.debugLog("Root path captured: '{}'", dir.toAbsolutePath().toString());
 		}
 
-		this.rootPath = dir.normalize();
-		this.updateWorldPath(this.rootPath.resolve(WORLD_DEFAULT), debugOk);
+		this.rootPath = dir;
+		this.updateReportsPath(REPORTS_FOLDER);
+		this.updateWorldPath(dir.resolve(WORLD_DEFAULT), false);
 	}
 
 	public void updateWorldPath(Path dir, boolean debugOk)
 	{
+		dir = dir.normalize();
+
 		if (debugOk)
 		{
 			ApScan.debugLog("World path captured: '{}'", dir.toAbsolutePath().toString());
 		}
 
-		this.worldPath = dir.normalize();
-		this.audioPath = this.worldPath.resolve(AUDIO_PLAYER_DATA);
+		this.worldPath = dir;
+		this.audioPath = dir.resolve(AUDIO_PLAYER_DATA);
+		this.playerDataPath = dir.resolve(WorldSavePath.PLAYERDATA.getRelativePath());
+	}
+
+	public void updateReportsPath(String dir)
+	{
+		if (dir != null && !dir.isEmpty())
+		{
+			this.reportsPath = this.getRootPath().resolve(dir).normalize();
+		}
+		else
+		{
+			this.reportsPath = this.getRootPath().resolve(REPORTS_FOLDER).normalize();
+		}
 	}
 
 	public DynamicRegistryManager getRegistry() { return this.registry; }
 
-	public void setRegistry(DynamicRegistryManager registry)
-	{
-		this.registry = registry;
-	}
+	public void setRegistry(DynamicRegistryManager registry) { this.registry = registry; }
 
 	public AudioFileList getPathList() { return this.pathList; }
 
@@ -98,4 +118,24 @@ public class DataManager
 		this.configList.clear();
 		this.configList = list;
 	}
+
+	public void setReportName(String name) { this.reportName = name; }
+
+	public String getReportName()
+	{
+		if (this.reportName.isEmpty())
+		{
+			return Reference.MOD_ID;
+		}
+
+		return this.reportName;
+	}
+
+	public void toggleStopServer() { this.stopServer = !this.stopServer; }
+
+	public boolean shouldStopServer() { return this.stopServer; }
+
+	public void toggleRunReports() { this.runReports = !this.runReports; }
+
+	public boolean shouldRunReports() { return this.runReports; }
 }
