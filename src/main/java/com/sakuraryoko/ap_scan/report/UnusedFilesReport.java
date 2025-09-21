@@ -1,6 +1,8 @@
 package com.sakuraryoko.ap_scan.report;
 
 import java.io.IOException;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -17,20 +19,26 @@ import com.sakuraryoko.ap_scan.data.DataManager;
 public class UnusedFilesReport
 {
 	private static final UnusedFilesReport INSTANCE = new UnusedFilesReport();
-	public static UnusedFilesReport getInstance() { return INSTANCE; }
+
+	public static UnusedFilesReport getInstance() {return INSTANCE;}
 
 	private final String CONFIG_SUFFIX = "ConfigUnused";
 	private final String PATH_SUFFIX = "DirectoryUnused";
 
-	public UnusedFilesReport() { }
+	private AudioFileList unusedFiles;
+
+	public UnusedFilesReport()
+	{
+		this.unusedFiles = new AudioFileList();
+	}
 
 	public void runReport(Path dir, String name)
 	{
 		DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH.mm.ss", Locale.ROOT);
 		String nowRfc = DateTimeFormatter.RFC_1123_DATE_TIME.format(ZonedDateTime.now());
 		String nowMC = fmt.format(ZonedDateTime.now());
-		Path file1 = dir.resolve(name+"-"+CONFIG_SUFFIX+"_"+nowMC+".txt");
-		Path file2 = dir.resolve(name+"-"+PATH_SUFFIX+"_"+nowMC+".txt");
+		Path file1 = dir.resolve(name + "-" + CONFIG_SUFFIX + "_" + nowMC + ".txt");
+		Path file2 = dir.resolve(name + "-" + PATH_SUFFIX + "_" + nowMC + ".txt");
 
 		if (!Files.isDirectory(dir))
 		{
@@ -71,8 +79,20 @@ public class UnusedFilesReport
 			}
 		}
 
-		this.runFromConfigReport(file1, name, nowRfc);
-		this.runFromDirectoryReport(file2, name, nowRfc);
+		if (DataManager.getInstance().getWorldList().isEmpty())
+		{
+			ApScan.LOGGER.error("runReport: World list is empty!  Cancelling report generation.");
+			return;
+		}
+
+		if (!DataManager.getInstance().getConfigList().isEmpty())
+		{
+			this.runFromConfigReport(file1, name, nowRfc);
+		}
+		if (!DataManager.getInstance().getPathList().isEmpty())
+		{
+			this.runFromDirectoryReport(file2, name, nowRfc);
+		}
 	}
 
 	private void runFromConfigReport(Path file, String name, String now)
@@ -80,8 +100,9 @@ public class UnusedFilesReport
 		AudioFileList config = DataManager.getInstance().getConfigList();
 		List<String> results = new ArrayList<>();
 		int count = 0;
+		int total = 0;
 
-		results.add(name+" ("+now+") Configured files unused report");
+		results.add(name + " (" + now + ") Configured files unused report");
 		results.add("========================================================================================================================");
 
 		for (int i = 0; i < config.size(); i++)
@@ -93,9 +114,11 @@ public class UnusedFilesReport
 				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.getId(), entry.getName()));
 				count++;
 			}
+
+			total++;
 		}
 
-		results.add(String.format("[TOTAL EXTRA: %04d]", count));
+		results.add(String.format("[TOTAL: %04d / EXTRA: %04d]", total, count));
 		this.writeAllLines(file, results);
 	}
 
@@ -104,8 +127,9 @@ public class UnusedFilesReport
 		AudioFileList config = DataManager.getInstance().getPathList();
 		List<String> results = new ArrayList<>();
 		int count = 0;
+		int total = 0;
 
-		results.add(name+" ("+now+") Directory files unused report");
+		results.add(name + " (" + now + ") Directory files unused report");
 		results.add("========================================================================================================================");
 
 		for (int i = 0; i < config.size(); i++)
@@ -115,11 +139,14 @@ public class UnusedFilesReport
 			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.getId()) == null)
 			{
 				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.getId(), entry.getName()));
+				this.unusedFiles.add(entry);
 				count++;
 			}
+
+			total++;
 		}
 
-		results.add(String.format("[TOTAL EXTRA: %04d]", count));
+		results.add(String.format("[TOTAL: %04d / EXTRA: %04d]", total, count));
 		this.writeAllLines(file, results);
 	}
 
@@ -133,5 +160,71 @@ public class UnusedFilesReport
 		{
 			ApScan.LOGGER.error("writeAllLines: Exception writing report file '{}'; {}", file.toAbsolutePath().toString(), err.getLocalizedMessage());
 		}
+	}
+
+	public void relocateAllUnusedFiles(Path fromDir, Path toDir)
+	{
+		if (!Files.isDirectory(toDir))
+		{
+			try
+			{
+				Files.createDirectory(toDir);
+			}
+			catch (IOException err)
+			{
+				ApScan.LOGGER.error("relocateAllUnusedFiles: Exception creating destination directory '{}'; {}", toDir.toAbsolutePath().toString(), err.getLocalizedMessage());
+				return;
+			}
+		}
+
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(fromDir))
+		{
+			int count = 0;
+
+			for (Path file : stream)
+			{
+				AudioFile audio = this.unusedFiles.getById(this.getNameWithoutExtension(file));
+
+				if (audio != null)
+				{
+					ApScan.debugLog("UnusedFilesReport#relocateAllUnusedFiles(): Moving unused file '{}' -> '{}'", file.getFileName().toString(), toDir.toAbsolutePath().toString());
+					Files.move(file, toDir);
+					count++;
+				}
+			}
+
+			ApScan.LOGGER.warn("relocateAllUnusedFiles: Relocated [{}] file(s) to '{}'", count, toDir.toAbsolutePath().toString());
+		}
+		catch (Exception err)
+		{
+			ApScan.LOGGER.error("relocateAllUnusedFiles: Exception relocating files to destination directory '{}'; {}", toDir.toAbsolutePath().toString(), err.getLocalizedMessage());
+		}
+	}
+
+	private String getNameWithoutExtension(Path file)
+	{
+		String s = file.getFileName().toString();
+		String separator = FileSystems.getDefault().getSeparator();
+		String filename;
+
+		int lastSeparatorIndex = s.lastIndexOf(separator);
+
+		if (lastSeparatorIndex == -1)
+		{
+			filename = s;
+		}
+		else
+		{
+			filename = s.substring(lastSeparatorIndex + 1);
+		}
+
+		// Remove the extension.
+		int extensionIndex = filename.lastIndexOf(".");
+		if (extensionIndex == -1)
+		{
+			return filename;
+		}
+
+		return filename.substring(0, extensionIndex);
 	}
 }

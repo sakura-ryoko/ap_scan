@@ -120,7 +120,7 @@ public class NbtAudioUtil
 						{
 							LoreComponent loreComp = stack.get(DataComponentTypes.LORE);
 
-							if (loreComp != null)
+							if (loreComp != null && !loreComp.lines().isEmpty())
 							{
 								lore = loreComp.lines().getFirst().getString();
 							}

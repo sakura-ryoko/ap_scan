@@ -24,7 +24,7 @@ public class MixinChunkCompressionFormat
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private <O> void increaseDeflateLevel9(int id, String name, ChunkCompressionFormat.Wrapper<O> inputStreamWrapper, ChunkCompressionFormat.Wrapper<O> outputStreamWrapper, CallbackInfo ci)
 	{
-		if (DataManager.getInstance().shouldAdjustDeflateLevel())
+		if (DataManager.getInstance().shouldAdjustDeflateLevel() && name != null)
 		{
 			if (name.equalsIgnoreCase("deflate"))
 			{

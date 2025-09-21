@@ -14,6 +14,8 @@ public class ConfigData
 	{
 		Path file = DataManager.getInstance().getAudioConfigFile();
 
+		ApScan.debugLog("ConfigData#readAudioFileListFromJson(): Reading Audio Config JSON (If present)");
+
 		if (Files.exists(file) && Files.isReadable(file))
 		{
 			try

@@ -18,10 +18,12 @@ public class DataManager
 	public static final String REPORT_NAME_PARAM			= "--reportName";
 	public static final String STOP_SERVER_PARAM			= "--stopServer";
 	public static final String DEFLATE_LEVEL_PARAM			= "--deflateLevel9";
+	public static final String RELOCATE_UNUSED_PARAM		= "--relocateUnused";
 
 	public static final String ROOT_DEFAULT 				= ".";
 	public static final String WORLD_DEFAULT 				= "world";
 	public static final String AUDIO_PLAYER_DATA			= "audio_player_data";
+	public static final String AUDIO_PLAYER_UNUSED			= "audio_player_unused";
 	public static final String AUDIO_PLAYER_CONFIG			= "file-name-mappings";
 	public static final String REPORTS_FOLDER				= "audioplayer_reports";
 
@@ -29,12 +31,14 @@ public class DataManager
 	private Path rootPath;
 	private Path worldPath;
 	private Path audioPath;
+	private Path audioUnusedPath;
 	private Path playerDataPath;
 	private Path reportsPath;
 	private String reportName;
 	private boolean stopServer = true;
 	private boolean runReports = true;
 	private boolean adjustDeflateLevel = false;
+	private boolean relocateUnused = true;
 
 	private final AudioFileList pathList;
 	private final AudioFileList worldList;
@@ -58,6 +62,8 @@ public class DataManager
 	public Path getWorldPath() { return this.worldPath; }
 
 	public Path getAudioPath() { return this.audioPath; }
+
+	public Path getAudioUnusedPath() { return this.audioUnusedPath; }
 
 	public Path getAudioConfigFile() { return this.audioPath.resolve(AUDIO_PLAYER_CONFIG+".json"); }
 
@@ -90,6 +96,7 @@ public class DataManager
 
 		this.worldPath = dir;
 		this.audioPath = dir.resolve(AUDIO_PLAYER_DATA);
+		this.audioUnusedPath = dir.resolve(AUDIO_PLAYER_UNUSED);
 		this.playerDataPath = dir.resolve(WorldSavePath.PLAYERDATA.getRelativePath());
 	}
 
@@ -144,4 +151,8 @@ public class DataManager
 	public void toggleDeflate() { this.adjustDeflateLevel = !this.adjustDeflateLevel; }
 
 	public boolean shouldAdjustDeflateLevel() { return this.adjustDeflateLevel; }
+
+	public void toggleRelocateUnused() { this.relocateUnused = !this.relocateUnused; }
+
+	public boolean shouldRelocateUnused() { return this.relocateUnused; }
 }

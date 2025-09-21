@@ -13,9 +13,9 @@ import com.sakuraryoko.ap_scan.data.EntityData;
 @Mixin(WorldUpdater.EntitiesUpdate.class)
 public class MixinWorldUpdater_Entities
 {
-	@Inject(method = "updateNbt", at = @At("HEAD"))
+	@Inject(method = "updateNbt", at = @At("RETURN"))
 	private void onEntityUpdate(ChunkPosKeyedStorage storage, NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir)
 	{
-		EntityData.processEntityData(nbt);
+		EntityData.processEntityData(cir.getReturnValue());
 	}
 }

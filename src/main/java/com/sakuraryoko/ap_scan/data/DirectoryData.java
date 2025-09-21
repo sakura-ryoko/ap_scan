@@ -16,6 +16,8 @@ public class DirectoryData
 	{
 		DataManager.getInstance().getPathList().clear();
 
+		ApScan.debugLog("DirectoryData#readAudioFileListFromPath(): Reading Audio Player Data directory ...");
+
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, AUDIO_FILE_FILTER))
 		{
 			int count = 0;

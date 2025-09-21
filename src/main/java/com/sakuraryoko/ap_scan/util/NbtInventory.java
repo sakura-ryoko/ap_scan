@@ -9,6 +9,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.slf4j.Logger;
+
 import net.minecraft.inventory.Inventories;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.inventory.SimpleInventory;
@@ -20,6 +22,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 
 import com.sakuraryoko.ap_scan.ApScan;
+import com.sakuraryoko.ap_scan.data.IDList;
 
 /**
  * This makes reading / Writing Inventories to / from NBT a piece of cake.
@@ -30,6 +33,7 @@ import com.sakuraryoko.ap_scan.ApScan;
  */
 public class NbtInventory implements AutoCloseable
 {
+	public static Logger LOGGER = ApScan.LOGGER;
     public static final int VILLAGER_SIZE = 8;
     public static final int DEFAULT_SIZE = 27;
     public static final int PLAYER_SIZE = 36;
@@ -391,7 +395,7 @@ public class NbtInventory implements AutoCloseable
 
         newInv.items = new HashSet<>();
         StackWithSlot slot = StackWithSlot.CODEC.parse(registry.getOps(NbtOps.INSTANCE), nbt).getPartialOrThrow();
-//        LOGGER.info("fromNbtSingle(): slot [{}], stack: [{}]", slot.slot(), slot.stack().toString());
+        LOGGER.info("fromNbtSingle(): slot [{}], stack: [{}]", slot.slot(), slot.stack().toString());
         newInv.items.add(slot);
 
         return newInv;
@@ -427,18 +431,20 @@ public class NbtInventory implements AutoCloseable
         for (int i = 0; i < list.size(); i++)
         {
             StackWithSlot slot;
+			NbtCompound nbt = checkForIDOverrides((NbtCompound) list.get(i));
+//			LOGGER.info("fromNbtList(): [{}]: NBT: [{}]", i, nbt.toString());
 
             // Some lists, such as the "Inventory" tag does not include slot ID's
             if (noSlotId)
             {
-                slot = new StackWithSlot(i, ItemStack.CODEC.parse(registry.getOps(NbtOps.INSTANCE), list.get(i)).getPartialOrThrow());
+                slot = new StackWithSlot(i, ItemStack.CODEC.parse(registry.getOps(NbtOps.INSTANCE), nbt).getPartialOrThrow());
             }
             else
             {
-                slot = StackWithSlot.CODEC.parse(registry.getOps(NbtOps.INSTANCE), list.get(i)).getPartialOrThrow();
+                slot = StackWithSlot.CODEC.parse(registry.getOps(NbtOps.INSTANCE), nbt).getPartialOrThrow();
             }
 
-            //LOGGER.info("fromNbtList(): [{}]: slot [{}], stack: [{}]", i, slot.slot(), slot.stack().toString());
+//            LOGGER.info("fromNbtList(): [{}]: slot [{}], stack: [{}]", i, slot.slot(), slot.stack().toString());
             newInv.items.add(slot);
             slotsUsed.add(slot.slot());
 
@@ -453,6 +459,19 @@ public class NbtInventory implements AutoCloseable
 
         return newInv;
     }
+
+	private static NbtCompound checkForIDOverrides(NbtCompound in)
+	{
+		String id = in.getString(NbtKeys.ID, "");
+
+		if (IDList.ID_OVERRIDES.containsKey(id))
+		{
+			id = IDList.ID_OVERRIDES.get(id);
+			in.putString(NbtKeys.ID, id);
+		}
+
+		return in;
+	}
 
     /**
      * This exists because an NBT List can have empty slots not accounted for in the middle of its current size;
@@ -510,17 +529,17 @@ public class NbtInventory implements AutoCloseable
     public void dumpInv()
     {
         AtomicInteger i = new AtomicInteger(0);
-        ApScan.LOGGER.info("dumpInv() --> START");
+        LOGGER.info("dumpInv() --> START");
 
         this.items.forEach(
                 (slot) ->
                 {
-					ApScan.LOGGER.info("[{}]: slot [{}], stack: [{}]", i, slot.slot(), slot.stack().toString());
+					LOGGER.info("[{}]: slot [{}], stack: [{}]", i.get(), slot.slot(), slot.stack().toString());
                     i.getAndIncrement();
                 }
         );
 
-		ApScan.LOGGER.info("dumpInv() --> END");
+		LOGGER.info("dumpInv() --> END");
     }
 
     @Override

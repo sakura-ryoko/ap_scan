@@ -22,6 +22,8 @@ public class PlayerData
 
 	public static void readAudioFileListFromPath(Path dir)
 	{
+		ApScan.debugLog("PlayersFileFilter#readAudioFileListFromPath(): Reading Player Data files ...");
+
 		try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, PLAYERS_FILE_FILTER))
 		{
 			int count = 0;

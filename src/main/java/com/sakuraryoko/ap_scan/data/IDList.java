@@ -1,5 +1,6 @@
 package com.sakuraryoko.ap_scan.data;
 
+import java.util.HashMap;
 import java.util.List;
 import com.google.common.collect.ImmutableList;
 
@@ -79,4 +80,12 @@ public class IDList
 			"minecraft:music_disc_precipice",
 			"minecraft:music_disc_tears"
 	);
+
+	public static HashMap<String, String> ID_OVERRIDES = new HashMap<>();
+
+	static
+	{
+		ID_OVERRIDES.put("minecraft:grass", "minecraft:short_grass");
+		ID_OVERRIDES.put("minecraft:scute", "minecraft:armadillo_scute");
+	}
 }

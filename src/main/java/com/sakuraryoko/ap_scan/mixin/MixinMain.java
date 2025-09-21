@@ -21,7 +21,6 @@ import org.spongepowered.asm.mixin.injection.ModifyVariable;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.Reference;
 import com.sakuraryoko.ap_scan.data.DataManager;
 import com.sakuraryoko.ap_scan.event.ProcessEvents;
@@ -42,6 +41,7 @@ public class MixinMain
 		boolean hasStopServer = false;
 		boolean hasDeflateLevel = false;
 		boolean hasReportName = false;
+		boolean hasRelocateUnused = false;
 
 		for (int i = 0; i < value.length; i++)
 		{
@@ -74,6 +74,11 @@ public class MixinMain
 				DataManager.getInstance().toggleDeflate();
 				hasDeflateLevel = true;
 			}
+			else if (entry.equalsIgnoreCase(DataManager.RELOCATE_UNUSED_PARAM))
+			{
+				DataManager.getInstance().toggleRelocateUnused();
+				hasRelocateUnused = true;
+			}
 			else if (entry.equalsIgnoreCase(DataManager.REPORT_NAME_PARAM))
 			{
 				if (value.length > (i + 1))
@@ -82,7 +87,7 @@ public class MixinMain
 				}
 				else
 				{
-					ApScan.LOGGER.error("Report Name Param exception; Out of bounds.");
+					LOGGER.error("{} [MAIN] -- Report Name Param exception; Out of bounds.", logPrefix);
 				}
 
 				hasReportName = true;
@@ -93,7 +98,11 @@ public class MixinMain
 		{
 			if (DataManager.getInstance().shouldRunReports())
 			{
-				LOGGER.info("{} -- No changed required.", logPrefix);
+				if (Reference.DEBUG)
+				{
+					LOGGER.info("{} [MAIN] -- No changed required.", logPrefix);
+				}
+
 				ProcessEvents.onPostArguments();
 			}
 
@@ -128,8 +137,15 @@ public class MixinMain
 				{
 					list.remove(DataManager.DEFLATE_LEVEL_PARAM);
 				}
+				if (hasRelocateUnused)
+				{
+					list.remove(DataManager.RELOCATE_UNUSED_PARAM);
+				}
 
-				LOGGER.warn("{} -- Arguments appended.", logPrefix);
+				if (Reference.DEBUG)
+				{
+					LOGGER.warn("{} [MAIN] -- Arguments appended.", logPrefix);
+				}
 				ProcessEvents.onPostArguments();
 
 				return list.toArray(new String[0]);
@@ -169,7 +185,7 @@ public class MixinMain
 			}
 			catch (Exception err)
 			{
-				LOGGER.error("{} -- LevelStorage.Session failed to be captured.", logPrefix);
+				LOGGER.error("{} [MAIN] -- LevelStorage.Session failed to be captured.", logPrefix);
 				System.exit(1);
 			}
 		}
@@ -180,7 +196,7 @@ public class MixinMain
 		}
 		catch (Exception err)
 		{
-			LOGGER.error("{} -- Vanilla Exception; {}", logPrefix, err.getLocalizedMessage());
+			LOGGER.error("{} [MAIN] -- Vanilla Exception; {}", logPrefix, err.getLocalizedMessage());
 			System.exit(1);
 		}
 
@@ -194,7 +210,10 @@ public class MixinMain
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
-			LOGGER.error("{} -- TASK COMPLETE.", logPrefix);
+			if (Reference.DEBUG)
+			{
+				LOGGER.error("{} [MAIN] -- TASK COMPLETE.", logPrefix);
+			}
 			ProcessEvents.onShutdown();
 
 			if (DataManager.getInstance().shouldStopServer())
