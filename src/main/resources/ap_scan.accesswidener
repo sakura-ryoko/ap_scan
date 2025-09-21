@@ -4,3 +4,4 @@ accessible class net/minecraft/world/updater/WorldUpdater$EntitiesUpdate
 accessible class net/minecraft/world/updater/WorldUpdater$RegionUpdate
 accessible class net/minecraft/world/updater/WorldUpdater$Update
 accessible class net/minecraft/world/updater/WorldUpdater$Region
+accessible class net/minecraft/world/storage/ChunkCompressionFormat$Wrapper

@@ -40,6 +40,7 @@ public class MixinMain
 		boolean hasRecreateRegionFiles = false;
 		boolean hasRunReports = false;
 		boolean hasStopServer = false;
+		boolean hasDeflateLevel = false;
 		boolean hasReportName = false;
 
 		for (int i = 0; i < value.length; i++)
@@ -67,6 +68,11 @@ public class MixinMain
 			{
 				DataManager.getInstance().toggleStopServer();
 				hasStopServer = true;
+			}
+			else if (entry.equalsIgnoreCase(DataManager.DEFLATE_LEVEL_PARAM))
+			{
+				DataManager.getInstance().toggleDeflate();
+				hasDeflateLevel = true;
 			}
 			else if (entry.equalsIgnoreCase(DataManager.REPORT_NAME_PARAM))
 			{
@@ -117,6 +123,10 @@ public class MixinMain
 				if (hasReportName)
 				{
 					list.remove(DataManager.REPORT_NAME_PARAM);
+				}
+				if (hasDeflateLevel)
+				{
+					list.remove(DataManager.DEFLATE_LEVEL_PARAM);
 				}
 
 				LOGGER.warn("{} -- Arguments appended.", logPrefix);

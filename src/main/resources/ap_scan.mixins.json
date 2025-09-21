@@ -5,6 +5,7 @@
     "mixins": [
         "IMixinNbtReadView",
         "IMixinNbtWriteView",
+        "MixinChunkCompressionFormat",
         "MixinMain",
         "MixinWorldUpdater_Entities",
         "MixinWorldUpdater_RegionUpdate"

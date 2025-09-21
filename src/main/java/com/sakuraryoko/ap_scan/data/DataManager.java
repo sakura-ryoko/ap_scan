@@ -17,6 +17,7 @@ public class DataManager
 	public static final String RUN_REPORTS_PARAM			= "--runReports";
 	public static final String REPORT_NAME_PARAM			= "--reportName";
 	public static final String STOP_SERVER_PARAM			= "--stopServer";
+	public static final String DEFLATE_LEVEL_PARAM			= "--deflateLevel9";
 
 	public static final String ROOT_DEFAULT 				= ".";
 	public static final String WORLD_DEFAULT 				= "world";
@@ -33,6 +34,7 @@ public class DataManager
 	private String reportName;
 	private boolean stopServer = true;
 	private boolean runReports = true;
+	private boolean adjustDeflateLevel = false;
 
 	private final AudioFileList pathList;
 	private final AudioFileList worldList;
@@ -138,4 +140,8 @@ public class DataManager
 	public void toggleRunReports() { this.runReports = !this.runReports; }
 
 	public boolean shouldRunReports() { return this.runReports; }
+
+	public void toggleDeflate() { this.adjustDeflateLevel = !this.adjustDeflateLevel; }
+
+	public boolean shouldAdjustDeflateLevel() { return this.adjustDeflateLevel; }
 }
