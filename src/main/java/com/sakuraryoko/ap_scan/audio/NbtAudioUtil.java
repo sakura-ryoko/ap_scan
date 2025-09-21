@@ -23,12 +23,12 @@ public class NbtAudioUtil
 {
 	public static final String CUSTOM_SOUND = "CustomSound";
 
-	public static void processEachNbt(NbtCompound nbt, @Nonnull DynamicRegistryManager registry)
+	public static void processEachNbt(NbtCompound nbt, @Nonnull DynamicRegistryManager registry, int oldDataVersion)
 	{
-		processEachInventory(InventoryUtils.getNbtInventory(nbt, registry), registry);
+		processEachInventory(InventoryUtils.getNbtInventory(nbt, registry), registry, oldDataVersion);
 	}
 
-	public static void processEachInventory(Inventory inv, @Nonnull DynamicRegistryManager registry)
+	public static void processEachInventory(Inventory inv, @Nonnull DynamicRegistryManager registry, int oldDataVersion)
 	{
 		if (inv == null || inv.isEmpty()) return;
 
@@ -40,11 +40,11 @@ public class NbtAudioUtil
 			{
 				if (entry.isIn(ItemTags.BUNDLES))
 				{
-					processEachBundle(entry, registry);
+					processEachBundle(entry, registry, oldDataVersion);
 				}
 				else if (entry.contains(DataComponentTypes.CONTAINER))
 				{
-					processEachContainer(entry, registry);
+					processEachContainer(entry, registry, oldDataVersion);
 				}
 				else
 				{
@@ -60,7 +60,7 @@ public class NbtAudioUtil
 		}
 	}
 
-	public static void processEachStacks(DefaultedList<ItemStack> stacks, @Nonnull DynamicRegistryManager registry)
+	public static void processEachStacks(DefaultedList<ItemStack> stacks, @Nonnull DynamicRegistryManager registry, int oldDataVersion)
 	{
 		if (stacks.isEmpty()) return;
 
@@ -68,11 +68,11 @@ public class NbtAudioUtil
 		{
 			if (stack.isIn(ItemTags.BUNDLES))
 			{
-				processEachBundle(stack, registry);
+				processEachBundle(stack, registry, oldDataVersion);
 			}
 			else if (stack.contains(DataComponentTypes.CONTAINER))
 			{
-				processEachContainer(stack, registry);
+				processEachContainer(stack, registry, oldDataVersion);
 			}
 			else
 			{
@@ -87,14 +87,14 @@ public class NbtAudioUtil
 		}
 	}
 
-	public static void processEachBundle(ItemStack stack, @Nonnull DynamicRegistryManager registry)
+	public static void processEachBundle(ItemStack stack, @Nonnull DynamicRegistryManager registry, int oldDataVersion)
 	{
-		processEachStacks(InventoryUtils.getBundleItems(stack), registry);
+		processEachStacks(InventoryUtils.getBundleItems(stack), registry, oldDataVersion);
 	}
 
-	public static void processEachContainer(ItemStack stack, @Nonnull DynamicRegistryManager registry)
+	public static void processEachContainer(ItemStack stack, @Nonnull DynamicRegistryManager registry, int oldDataVersion)
 	{
-		processEachStacks(InventoryUtils.getStoredItems(stack), registry);
+		processEachStacks(InventoryUtils.getStoredItems(stack), registry, oldDataVersion);
 	}
 
 	@Nullable

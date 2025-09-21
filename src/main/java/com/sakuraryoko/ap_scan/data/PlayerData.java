@@ -12,6 +12,7 @@ import net.minecraft.registry.DynamicRegistryManager;
 
 import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.audio.NbtAudioUtil;
+import com.sakuraryoko.ap_scan.util.DataFixerUtils;
 import com.sakuraryoko.ap_scan.util.NbtInventory;
 import com.sakuraryoko.ap_scan.util.NbtKeys;
 import com.sakuraryoko.ap_scan.util.NbtUtils;
@@ -52,15 +53,19 @@ public class PlayerData
 		}
 
 		DynamicRegistryManager registry = DataManager.getInstance().getRegistry();
-		NbtList enderItems = nbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
-		NbtList inventory = nbt.getListOrEmpty(NbtKeys.INVENTORY);
+		int oldDataVersion = nbt.getInt("DataVersion", -1);
+		boolean shouldFix = oldDataVersion < DataFixerUtils.CURRENT_SCHEMA;
+		NbtCompound fixedNbt = shouldFix ? DataFixerUtils.fixPlayer(nbt, oldDataVersion) : nbt;
+
+		NbtList enderItems = fixedNbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
+		NbtList inventory = fixedNbt.getListOrEmpty(NbtKeys.INVENTORY);
 
 		try (NbtInventory enderInv = NbtInventory.fromNbtList(enderItems, false, registry))
 		{
 			if (enderInv != null)
 			{
 //				enderInv.dumpInv();
-				processEachInventory(enderInv.toInventory(NbtInventory.DEFAULT_SIZE));
+				processEachInventory(enderInv.toInventory(NbtInventory.DEFAULT_SIZE), registry, oldDataVersion);
 			}
 		}
 		catch (Exception err)
@@ -73,7 +78,7 @@ public class PlayerData
 			if (inv != null)
 			{
 //				inv.dumpInv();
-				processEachInventory(inv.toInventory(NbtInventory.PLAYER_SIZE));
+				processEachInventory(inv.toInventory(NbtInventory.PLAYER_SIZE), registry, oldDataVersion);
 			}
 		}
 		catch (Exception err)
@@ -82,14 +87,14 @@ public class PlayerData
 		}
 	}
 
-	public static void processEachInventory(Inventory inv)
+	public static void processEachInventory(Inventory inv, DynamicRegistryManager registry, int oldDataVersion)
 	{
 		if (inv == null || inv.isEmpty())
 		{
 			return;
 		}
 
-		NbtAudioUtil.processEachInventory(inv, DataManager.getInstance().getRegistry());
+		NbtAudioUtil.processEachInventory(inv, registry, oldDataVersion);
 	}
 
 	public static class PlayersFileFilter implements DirectoryStream.Filter<Path>

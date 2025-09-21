@@ -22,6 +22,7 @@ import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.MathHelper;
 
 import com.sakuraryoko.ap_scan.ApScan;
+import com.sakuraryoko.ap_scan.Reference;
 import com.sakuraryoko.ap_scan.data.IDList;
 
 /**
@@ -432,7 +433,12 @@ public class NbtInventory implements AutoCloseable
         {
             StackWithSlot slot;
 			NbtCompound nbt = checkForIDOverrides((NbtCompound) list.get(i));
-//			LOGGER.info("fromNbtList(): [{}]: NBT: [{}]", i, nbt.toString());
+			String id = nbt.getString(NbtKeys.ID, "");
+
+			if (IDList.RECORD_ID_LIST.contains(id) && Reference.DEBUG)
+			{
+				LOGGER.info("fromNbtList(): [{}]: NBT: [{}]", i, nbt.toString());
+			}
 
             // Some lists, such as the "Inventory" tag does not include slot ID's
             if (noSlotId)

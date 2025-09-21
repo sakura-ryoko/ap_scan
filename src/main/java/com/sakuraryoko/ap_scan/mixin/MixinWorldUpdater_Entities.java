@@ -16,6 +16,6 @@ public class MixinWorldUpdater_Entities
 	@Inject(method = "updateNbt", at = @At("RETURN"))
 	private void onEntityUpdate(ChunkPosKeyedStorage storage, NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir)
 	{
-		EntityData.processEntityData(cir.getReturnValue());
+		EntityData.processEntityData(cir.getReturnValue(), nbt.getInt("DataVersion", -1));
 	}
 }

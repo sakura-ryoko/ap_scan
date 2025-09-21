@@ -187,8 +187,9 @@ public class UnusedFilesReport
 
 				if (audio != null)
 				{
-					ApScan.debugLog("UnusedFilesReport#relocateAllUnusedFiles(): Moving unused file '{}' -> '{}'", file.getFileName().toString(), toDir.toAbsolutePath().toString());
-					Files.move(file, toDir);
+					Path target = toDir.resolve(file.getFileName());
+					ApScan.debugLog("UnusedFilesReport#relocateAllUnusedFiles(): Moving unused file '{}' -> '{}'", file.getFileName().toString(), target.toAbsolutePath().toString());
+					Files.move(file, target);
 					count++;
 				}
 			}
