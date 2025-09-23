@@ -22,7 +22,7 @@ public class MixinChunkCompressionFormat
 	@Mutable @Shadow @Final private ChunkCompressionFormat.Wrapper<OutputStream> outputStreamWrapper;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private <O> void increaseDeflateLevel9(int id, String name, ChunkCompressionFormat.Wrapper<O> inputStreamWrapper, ChunkCompressionFormat.Wrapper<O> outputStreamWrapper, CallbackInfo ci)
+	private <O> void ap_scan$increaseDeflateLevel9(int id, String name, ChunkCompressionFormat.Wrapper<O> inputStreamWrapper, ChunkCompressionFormat.Wrapper<O> outputStreamWrapper, CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldAdjustDeflateLevel() && name != null)
 		{

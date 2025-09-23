@@ -1,25 +1,13 @@
 package com.sakuraryoko.ap_scan.audio;
 
 import com.google.gson.JsonElement;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.sakuraryoko.ap_scan.ApScan;
 
-public class AudioFile
+public record AudioFile(String id, String name)
 {
-	private final String id;
-	private final String name;
-
-	public AudioFile(String id, String name)
-	{
-		this.id = id;
-		this.name = name;
-	}
-
-	public String getId() { return this.id; }
-
-	public String getName() { return this.name; }
-
 	@Nullable
 	public static AudioFile fromJson(String key, JsonElement element)
 	{
@@ -39,11 +27,11 @@ public class AudioFile
 	}
 
 	@Override
-	public String toString()
+	public @NotNull String toString()
 	{
 		return "AudioFile[" +
-				"{id="+this.id+"}" +
-				",{name="+this.name+"}" +
+				"{id=" + this.id + "}" +
+				",{name=" + this.name + "}" +
 				"]";
 	}
 }

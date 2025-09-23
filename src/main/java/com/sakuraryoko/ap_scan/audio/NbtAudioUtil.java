@@ -1,13 +1,7 @@
 package com.sakuraryoko.ap_scan.audio;
 
-import java.util.ArrayList;
 import java.util.Objects;
-import java.util.UUID;
 import javax.annotation.Nonnull;
-
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtOps;
 
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.LoreComponent;
@@ -15,6 +9,9 @@ import net.minecraft.component.type.NbtComponent;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.util.Uuids;
@@ -54,9 +51,9 @@ public class NbtAudioUtil
 				}
 				else
 				{
-                    ArrayList<AudioFile> files = fromItemStack(entry);
+                    AudioFileList files = fromItemStack(entry);
 
-					for (AudioFile file : files)
+					for (AudioFile file : files.asList())
 					{
 						ApScan.LOGGER.warn("processEachInventory(): [INV] {}", file.toString());
 						DataManager.getInstance().getWorldList().add(file);
@@ -82,12 +79,7 @@ public class NbtAudioUtil
 			}
 			else
 			{
-				ArrayList<AudioFile> files = fromItemStack(stack);
-
-                for (AudioFile file : files) {
-                    ApScan.LOGGER.warn("processEachStacks(): [STACKS] {}", file.toString());
-                    DataManager.getInstance().getWorldList().add(file);
-                }
+				DataManager.getInstance().getWorldList().addList(fromItemStack(stack));
 			}
 		}
 	}
@@ -102,22 +94,23 @@ public class NbtAudioUtil
 		processEachStacks(InventoryUtils.getStoredItems(stack), registry, oldDataVersion);
 	}
 
-	public static ArrayList<AudioFile> fromItemStack(ItemStack stack)
+	public static AudioFileList fromItemStack(ItemStack stack)
 	{
-        ArrayList<AudioFile> files = new ArrayList<>();
+		AudioFileList files = new AudioFileList();
+
 		if (!stack.isEmpty() && stack.contains(DataComponentTypes.CUSTOM_DATA))
 		{
 			NbtComponent comp = stack.get(DataComponentTypes.CUSTOM_DATA);
 
 			if (comp != null)
 			{
-				NbtCompound data = comp.copyNbt();
+				NbtCompound nbt = comp.copyNbt();
 
                 String lore = stack.getName().getString();
 
                 if (stack.contains(DataComponentTypes.LORE))
                 {
-                    LoreComponent loreComp = stack.get(DataComponentTypes.LORE);
+                    LoreComponent loreComp = stack.getOrDefault(DataComponentTypes.LORE, LoreComponent.DEFAULT);
 
                     if (loreComp != null && !loreComp.lines().isEmpty())
                     {
@@ -125,32 +118,27 @@ public class NbtAudioUtil
                     }
                 }
 
-                if (data.contains(CUSTOM_SOUND_RANDOM))
+				final String lore2 = lore;
+
+				if (nbt.contains(CUSTOM_SOUND_RANDOM))
                 {
-                    NbtList uuids = Objects.requireNonNull(data.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
+                    NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
 
-                    if (uuids != null)
-                    {
-                        for (NbtElement element : uuids)
-                        {
-                            UUID uuid = Uuids.INT_STREAM_CODEC.decode(NbtOps.INSTANCE, element).getOrThrow().getFirst();
-                            if (uuid != null)
-                            {
-                                files.add(new AudioFile(uuid.toString(), lore));
-                            }
-
-                        }
-                    }
-
-                }
-                else if (data.contains(CUSTOM_SOUND))
-				{
-					UUID uuid = data.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).orElse(null);
-
-					if (uuid != null)
+					if (uuids != null)
 					{
-						files.add(new AudioFile(uuid.toString(), lore));
+						for (NbtElement element : uuids)
+						{
+							Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
+											(uuid) -> files.add(new AudioFile(uuid.toString(), lore2))
+									);
+						}
 					}
+                }
+                else if (nbt.contains(CUSTOM_SOUND))
+				{
+					nbt.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
+							(uuid) -> files.add(new AudioFile(uuid.toString(), lore2))
+					);
 				}
 			}
 		}

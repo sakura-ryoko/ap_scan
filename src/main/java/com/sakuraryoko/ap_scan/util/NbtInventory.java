@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
+import org.jetbrains.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 
 import net.minecraft.inventory.Inventories;
@@ -532,6 +532,7 @@ public class NbtInventory implements AutoCloseable
         }
     }
 
+	@VisibleForTesting
     public void dumpInv()
     {
         AtomicInteger i = new AtomicInteger(0);

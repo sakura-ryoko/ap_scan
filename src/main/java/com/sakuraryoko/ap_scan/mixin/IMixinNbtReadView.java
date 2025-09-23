@@ -6,12 +6,15 @@ import net.minecraft.storage.ReadContext;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
+/**
+ * Copied from MaLiLib
+ */
 @Mixin(NbtReadView.class)
 public interface IMixinNbtReadView
 {
     @Accessor("context")
-    ReadContext malilib_getContext();
+    ReadContext ap_scan$getContext();
 
     @Accessor("nbt")
-    NbtCompound malilib_getNbt();
+    NbtCompound ap_scan$getNbt();
 }

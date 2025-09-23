@@ -6,12 +6,15 @@ import net.minecraft.storage.NbtWriteView;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
+/**
+ * Copied from MaLiLib
+ */
 @Mixin(NbtWriteView.class)
 public interface IMixinNbtWriteView
 {
     @Accessor("ops")
-    DynamicOps<?> malilib_getOps();
+    DynamicOps<?> ap_scan$getOps();
 
     @Accessor("nbt")
-    NbtCompound malilib_getNbt();
+    NbtCompound ap_scan$getNbt();
 }

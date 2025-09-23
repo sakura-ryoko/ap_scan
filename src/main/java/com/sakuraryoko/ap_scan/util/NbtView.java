@@ -82,7 +82,7 @@ public class NbtView
     {
         if (this.isReader())
         {
-            return ((IMixinNbtReadView) this.reader).malilib_getContext();
+            return ((IMixinNbtReadView) this.reader).ap_scan$getContext();
         }
 
         LOGGER.error("getReaderContext(): Called from a Writer Context");
@@ -93,7 +93,7 @@ public class NbtView
     {
         if (this.isWriter())
         {
-            return ((IMixinNbtWriteView) this.writer).malilib_getOps();
+            return ((IMixinNbtWriteView) this.writer).ap_scan$getOps();
         }
 
         LOGGER.error("getWriterOps(): Called from a Reader Context");
@@ -108,11 +108,11 @@ public class NbtView
     {
         if (this.isReader())
         {
-            return ((IMixinNbtReadView) this.reader).malilib_getNbt();
+            return ((IMixinNbtReadView) this.reader).ap_scan$getNbt();
         }
         else if (this.isWriter())
         {
-            return ((IMixinNbtWriteView) this.writer).malilib_getNbt();
+            return ((IMixinNbtWriteView) this.writer).ap_scan$getNbt();
         }
 
         LOGGER.error("readNbt(): General failure");

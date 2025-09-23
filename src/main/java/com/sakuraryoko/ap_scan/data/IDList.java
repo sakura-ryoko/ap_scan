@@ -6,6 +6,9 @@ import com.google.common.collect.ImmutableList;
 
 public class IDList
 {
+	/**
+	 * Entity ID's to check
+	 */
 	public static List<String> ENTITY_ID_LIST = ImmutableList.of(
 			"minecraft:armor_stand",
 			"minecraft:block_display",
@@ -13,10 +16,8 @@ public class IDList
 			"minecraft:item",
 			"minecraft:item_display",
 			"minecraft:item_frame",
-
 			"minecraft:chest_minecart",
 			"minecraft:hopper_minecart",
-
 			"minecraft:allay",
 			"minecraft:donkey",
 			"minecraft:llama",
@@ -27,7 +28,6 @@ public class IDList
 			"minecraft:villager",
 			"minecraft:wandering_trader",
 			"minecraft:player",
-
 			"minecraft:acacia_chest_boat",
 			"minecraft:bamboo_chest_raft",
 			"minecraft:birch_chest_boat",
@@ -40,6 +40,9 @@ public class IDList
 			"minecraft:spruce_chest_boat"
 	);
 
+	/**
+	 * Tile ID's to check
+	 */
 	public static List<String> TILE_ID_LIST = ImmutableList.of(
 			"minecraft:jukebox",
 			"minecraft:chest",
@@ -50,13 +53,15 @@ public class IDList
 			"minecraft:barrel",
 			"minecraft:trapped_chest",
 			"minecraft:decorated_pot",
-
 			"minecraft:crafter",
 			"minecraft:furnace",
 			"minecraft:smoker",
 			"minecraft:blast_furnace"
 	);
 
+	/**
+	 * Valid Music Disc IDs
+	 */
 	public static List<String> RECORD_ID_LIST = ImmutableList.of(
 			"minecraft:music_disc_13",
 			"minecraft:music_disc_cat",
@@ -81,6 +86,9 @@ public class IDList
 			"minecraft:music_disc_tears"
 	);
 
+	/**
+	 * Manual item ID overrides
+	 */
 	public static HashMap<String, String> ID_OVERRIDES = new HashMap<>();
 
 	static

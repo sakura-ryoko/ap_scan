@@ -22,12 +22,4 @@ public class Constants
         public static final int TAG_LONG_ARRAY  = 12;
         public static final int TAG_ANY_NUMERIC = 99;
     }
-
-    /**
-     * Replaces removed call to net.minecraft.SharedConstants
-     */
-    public static boolean isValidChar(char chr)
-    {
-        return chr != 167 && chr >= ' ' && chr != 127;
-    }
 }

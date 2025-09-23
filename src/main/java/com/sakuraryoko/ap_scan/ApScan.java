@@ -12,6 +12,7 @@ public class ApScan implements ModInitializer
 	@Override
 	public void onInitialize()
 	{
+		// NO-OP
 	}
 
 	public static void debugLog(String str, Object... args)

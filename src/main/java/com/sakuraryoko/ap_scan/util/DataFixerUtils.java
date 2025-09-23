@@ -8,6 +8,9 @@ import net.minecraft.datafixer.TypeReferences;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtOps;
 
+/**
+ * A collection of common Data Fixer procedures
+ */
 public class DataFixerUtils
 {
 	public static final DataFixer DATA_FIXER = Schemas.getFixer();

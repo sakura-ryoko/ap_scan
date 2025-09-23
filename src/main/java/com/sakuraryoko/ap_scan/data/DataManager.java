@@ -14,12 +14,26 @@ public class DataManager
 	private static final DataManager INSTANCE = new DataManager();
 	public static DataManager getInstance() { return INSTANCE; }
 
+	/**
+	 * Runtime Arguments
+	 */
 	public static final String RUN_REPORTS_PARAM			= "--runReports";
 	public static final String REPORT_NAME_PARAM			= "--reportName";
 	public static final String STOP_SERVER_PARAM			= "--stopServer";
 	public static final String DEFLATE_LEVEL_PARAM			= "--deflateLevel9";
 	public static final String RELOCATE_UNUSED_PARAM		= "--relocateUnused";
 
+	/**
+	 * Default settings (Non-testing these should be false)
+	 */
+	private boolean stopServer = true;
+	private boolean runReports = true;
+	private boolean adjustDeflateLevel = true;
+	private boolean relocateUnused = true;
+
+	/**
+	 * Default Directory Paths
+	 */
 	public static final String ROOT_DEFAULT 				= ".";
 	public static final String WORLD_DEFAULT 				= "world";
 	public static final String AUDIO_PLAYER_DATA			= "audio_player_data";
@@ -27,6 +41,9 @@ public class DataManager
 	public static final String AUDIO_PLAYER_CONFIG			= "file-name-mappings";
 	public static final String REPORTS_FOLDER				= "audioplayer_reports";
 
+	/**
+	 * Internal Use Only
+	 */
 	private DynamicRegistryManager registry;
 	private Path rootPath;
 	private Path worldPath;
@@ -35,10 +52,6 @@ public class DataManager
 	private Path playerDataPath;
 	private Path reportsPath;
 	private String reportName;
-	private boolean stopServer = true;
-	private boolean runReports = true;
-	private boolean adjustDeflateLevel = false;
-	private boolean relocateUnused = true;
 
 	private final AudioFileList pathList;
 	private final AudioFileList worldList;
@@ -140,19 +153,19 @@ public class DataManager
 		return this.reportName;
 	}
 
-	public void toggleStopServer() { this.stopServer = !this.stopServer; }
-
-	public boolean shouldStopServer() { return this.stopServer; }
-
 	public void toggleRunReports() { this.runReports = !this.runReports; }
 
-	public boolean shouldRunReports() { return this.runReports; }
+	public void toggleStopServer() { this.stopServer = !this.stopServer; }
 
 	public void toggleDeflate() { this.adjustDeflateLevel = !this.adjustDeflateLevel; }
 
-	public boolean shouldAdjustDeflateLevel() { return this.adjustDeflateLevel; }
-
 	public void toggleRelocateUnused() { this.relocateUnused = !this.relocateUnused; }
+
+	public boolean shouldRunReports() { return this.runReports; }
+
+	public boolean shouldStopServer() { return this.stopServer; }
+
+	public boolean shouldAdjustDeflateLevel() { return this.adjustDeflateLevel; }
 
 	public boolean shouldRelocateUnused() { return this.relocateUnused; }
 }

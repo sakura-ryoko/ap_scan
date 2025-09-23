@@ -21,7 +21,7 @@ public class MixinWorldUpdater_RegionUpdate
 	@Inject(method = "update(Lnet/minecraft/world/storage/VersionedChunkStorage;Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/registry/RegistryKey;)Z",
 			at = @At(value = "INVOKE",
 					 target = "Lnet/minecraft/world/storage/VersionedChunkStorage;updateChunkNbt(Lnet/minecraft/registry/RegistryKey;Ljava/util/function/Supplier;Lnet/minecraft/nbt/NbtCompound;Ljava/util/Optional;)Lnet/minecraft/nbt/NbtCompound;"))
-	private void onChunkUpdate(VersionedChunkStorage versionedChunkStorage, ChunkPos chunkPos, RegistryKey<World> registryKey, CallbackInfoReturnable<Boolean> cir,
+	private void ap_scan$onChunkUpdate(VersionedChunkStorage versionedChunkStorage, ChunkPos chunkPos, RegistryKey<World> registryKey, CallbackInfoReturnable<Boolean> cir,
 							   @Local NbtCompound nbtCompound,
 							   @Local NbtCompound nbtCompound2)
 	{

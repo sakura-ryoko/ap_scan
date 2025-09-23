@@ -32,7 +32,7 @@ public class MixinMain
 	@Unique private static final String logPrefix = "("+ Reference.MOD_ID+")";
 
 	@ModifyVariable(method = "main", at = @At("HEAD"), argsOnly = true)
-	private static String[] onLaunchServer(String[] value)
+	private static String[] ap_scan$onLaunchServer(String[] value)
 	{
 		boolean hasForceUpgrade = false;
 		boolean hasEraseCache = false;
@@ -160,7 +160,7 @@ public class MixinMain
 	@Redirect(method = "main",
 			  at = @At(value = "INVOKE",
 					   target = "Lnet/minecraft/world/level/storage/LevelStorage;create(Ljava/nio/file/Path;)Lnet/minecraft/world/level/storage/LevelStorage;"))
-	private static LevelStorage onCaptureRootPath(Path path)
+	private static LevelStorage ap_scan$onCaptureRootPath(Path path)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
@@ -173,7 +173,7 @@ public class MixinMain
 	@Redirect(method = "main",
 			  at = @At(value = "INVOKE",
 					 target = "Lnet/minecraft/world/level/storage/LevelStorage;createSession(Ljava/lang/String;)Lnet/minecraft/world/level/storage/LevelStorage$Session;"))
-	private static LevelStorage.Session onCaptureWorldPath(LevelStorage instance, String directoryName)
+	private static LevelStorage.Session ap_scan$onCaptureWorldPath(LevelStorage instance, String directoryName)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
@@ -206,7 +206,7 @@ public class MixinMain
 	@Inject(method = "main",
 			at = @At(value = "INVOKE",
 					 target = "Lnet/minecraft/world/level/storage/LevelStorage$Session;backupLevelDataFile(Lnet/minecraft/registry/DynamicRegistryManager;Lnet/minecraft/world/SaveProperties;)V"), cancellable = true)
-	private static void onLaunchCancel(String[] args, CallbackInfo ci)
+	private static void ap_scan$onLaunchCancel(String[] args, CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
@@ -225,7 +225,7 @@ public class MixinMain
 	}
 
 	@Inject(method = "forceUpgradeWorld", at = @At("HEAD"))
-	private static void onCaptureImmutable(LevelStorage.Session session, SaveProperties saveProperties, DataFixer dataFixer, boolean eraseCache, BooleanSupplier continueCheck, DynamicRegistryManager registries, boolean recreateRegionFiles, CallbackInfo ci)
+	private static void ap_scan$onCaptureImmutable(LevelStorage.Session session, SaveProperties saveProperties, DataFixer dataFixer, boolean eraseCache, BooleanSupplier continueCheck, DynamicRegistryManager registries, boolean recreateRegionFiles, CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{

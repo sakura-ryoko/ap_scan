@@ -7,17 +7,16 @@ import com.google.common.collect.Iterables;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.VisibleForTesting;
 
 import com.sakuraryoko.ap_scan.ApScan;
+import com.sakuraryoko.ap_scan.Reference;
 
 public class AudioFileList
 {
 	private final List<AudioFile> files;
 
-	public AudioFileList()
-	{
-		this.files = new ArrayList<>();
-	}
+	public AudioFileList() { this.files = new ArrayList<>(); }
 
 	public boolean contains(String id)
 	{
@@ -26,7 +25,7 @@ public class AudioFileList
 		this.files.forEach(
 				(entry) ->
 				{
-					if (entry.getId().equalsIgnoreCase(id))
+					if (entry.id().equalsIgnoreCase(id))
 					{
 						bool.set(true);
 					}
@@ -41,7 +40,7 @@ public class AudioFileList
 	{
 		for (AudioFile entry : this.files)
 		{
-			if (entry.getId().equalsIgnoreCase(id))
+			if (entry.id().equalsIgnoreCase(id))
 			{
 				return entry;
 			}
@@ -51,10 +50,7 @@ public class AudioFileList
 	}
 
 	@Nullable
-	public AudioFile getByUuid(UUID uuid)
-	{
-		return this.getById(uuid.toString());
-	}
+	public AudioFile getByUuid(UUID uuid) { return this.getById(uuid.toString()); }
 
 	@Nullable
 	public AudioFile get(int index)
@@ -71,6 +67,7 @@ public class AudioFileList
 	{
 		if (index > -1 && index < this.size())
 		{
+			this.files.set(index, file);
 		}
 		else
 		{
@@ -81,7 +78,7 @@ public class AudioFileList
 	public void add(AudioFile file)
 	{
 		// Don't duplicate
-		if (this.contains(file.getId()))
+		if (this.contains(file.id()))
 		{
 			return;
 		}
@@ -89,24 +86,30 @@ public class AudioFileList
 		this.files.add(file);
 	}
 
-	public void remove(AudioFile file)
+	public void addList(AudioFileList otherList)
 	{
-		this.files.remove(file);
+		for (AudioFile entry : otherList.files)
+		{
+			if (Reference.DEBUG)
+			{
+				ApScan.LOGGER.warn("addList(): [STACKS] {}", entry.toString());
+			}
+
+			this.add(entry);
+		}
 	}
+
+	public void remove(AudioFile file) { this.files.remove(file); }
 
 	public boolean isEmpty() { return this.files.isEmpty(); }
 
 	public int size() { return this.files.size(); }
 
-	public Iterable<AudioFile> iterator()
-	{
-		return Iterables.concat(this.files);
-	}
+	public List<AudioFile> asList() { return this.files; }
 
-	public Stream<AudioFile> stream()
-	{
-		return this.files.stream();
-	}
+	public Iterable<AudioFile> iterator() { return Iterables.concat(this.files); }
+
+	public Stream<AudioFile> stream() { return this.files.stream(); }
 
 	public void clear() { this.files.clear(); }
 
@@ -144,6 +147,7 @@ public class AudioFileList
 		return list;
 	}
 
+	@VisibleForTesting
 	public void dump()
 	{
 		System.out.print("AudioFileList: DUMP -->\n");

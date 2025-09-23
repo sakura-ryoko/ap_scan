@@ -109,9 +109,9 @@ public class UnusedFilesReport
 		{
 			AudioFile entry = config.get(i);
 
-			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.getId()) == null)
+			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.id()) == null)
 			{
-				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.getId(), entry.getName()));
+				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.id(), entry.name()));
 				count++;
 			}
 
@@ -136,9 +136,9 @@ public class UnusedFilesReport
 		{
 			AudioFile entry = config.get(i);
 
-			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.getId()) == null)
+			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.id()) == null)
 			{
-				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.getId(), entry.getName()));
+				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.id(), entry.name()));
 				this.unusedFiles.add(entry);
 				count++;
 			}

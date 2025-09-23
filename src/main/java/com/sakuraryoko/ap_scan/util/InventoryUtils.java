@@ -4,7 +4,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import org.apache.commons.lang3.math.Fraction;
 
 import net.minecraft.component.DataComponentTypes;
