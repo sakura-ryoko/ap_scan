@@ -25,7 +25,7 @@ public class UnusedFilesReport
 	private final String CONFIG_SUFFIX = "ConfigUnused";
 	private final String PATH_SUFFIX = "DirectoryUnused";
 
-	private AudioFileList unusedFiles;
+	private final AudioFileList unusedFiles;
 
 	public UnusedFilesReport()
 	{
@@ -164,6 +164,12 @@ public class UnusedFilesReport
 
 	public void relocateAllUnusedFiles(Path fromDir, Path toDir)
 	{
+        if (!Files.isDirectory(fromDir))
+        {
+            ApScan.LOGGER.error("relocateAllUnusedFiles: Exception; Source directory '{}' does not exist,", fromDir.toAbsolutePath().toString());
+            return;
+        }
+
 		if (!Files.isDirectory(toDir))
 		{
 			try
