@@ -42,6 +42,7 @@ public class MixinMain
 		boolean hasDeflateLevel = false;
 		boolean hasReportName = false;
 		boolean hasRelocateUnused = false;
+        boolean hasDisableLightmapPrune = false;
 
 		for (int i = 0; i < value.length; i++)
 		{
@@ -79,6 +80,11 @@ public class MixinMain
 				DataManager.getInstance().toggleRelocateUnused();
 				hasRelocateUnused = true;
 			}
+            else if (entry.equalsIgnoreCase(DataManager.DISABLE_LIGHTMAP_PRUNE_PARAM))
+            {
+                DataManager.getInstance().toggleDisableLightmapPrune();
+                hasDisableLightmapPrune = true;
+            }
 			else if (entry.equalsIgnoreCase(DataManager.REPORT_NAME_PARAM))
 			{
 				if (value.length > (i + 1))
@@ -141,6 +147,10 @@ public class MixinMain
 				{
 					list.remove(DataManager.RELOCATE_UNUSED_PARAM);
 				}
+                if (hasDisableLightmapPrune)
+                {
+                    list.remove(DataManager.DISABLE_LIGHTMAP_PRUNE_PARAM);
+                }
 
 				if (Reference.DEBUG)
 				{

@@ -22,6 +22,7 @@ public class DataManager
 	public static final String STOP_SERVER_PARAM			= "--stopServer";
 	public static final String DEFLATE_LEVEL_PARAM			= "--deflateLevel9";
 	public static final String RELOCATE_UNUSED_PARAM		= "--relocateUnused";
+    public static final String DISABLE_LIGHTMAP_PRUNE_PARAM = "--noPruneLightmap";
 
 	/**
 	 * Default settings (Non-testing these should be false)
@@ -30,6 +31,7 @@ public class DataManager
 	private boolean runReports = true;
 	private boolean adjustDeflateLevel = true;
 	private boolean relocateUnused = true;
+    private boolean disableLightmapPruning = false;
 
 	/**
 	 * Default Directory Paths
@@ -161,11 +163,15 @@ public class DataManager
 
 	public void toggleRelocateUnused() { this.relocateUnused = !this.relocateUnused; }
 
-	public boolean shouldRunReports() { return this.runReports; }
+    public void toggleDisableLightmapPrune() { this.disableLightmapPruning = !this.disableLightmapPruning; }
+
+    public boolean shouldRunReports() { return this.runReports; }
 
 	public boolean shouldStopServer() { return this.stopServer; }
 
 	public boolean shouldAdjustDeflateLevel() { return this.adjustDeflateLevel; }
 
 	public boolean shouldRelocateUnused() { return this.relocateUnused; }
+
+    public boolean shouldDisableLightmapPrune() { return this.disableLightmapPruning; }
 }

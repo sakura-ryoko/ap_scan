@@ -2,6 +2,7 @@ package com.sakuraryoko.ap_scan.mixin;
 
 import com.llamalad7.mixinextras.sugar.Local;
 
+import com.sakuraryoko.ap_scan.data.DataManager;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.math.ChunkPos;
@@ -10,7 +11,9 @@ import net.minecraft.world.storage.VersionedChunkStorage;
 import net.minecraft.world.updater.WorldUpdater;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.Inject;
+import org.spongepowered.asm.mixin.injection.ModifyConstant;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.sakuraryoko.ap_scan.data.ChunkData;
@@ -27,4 +30,16 @@ public class MixinWorldUpdater_RegionUpdate
 	{
 		ChunkData.processChunkData(nbtCompound2, nbtCompound.getInt("DataVersion", -1));
 	}
+
+    @ModifyConstant(method = "update(Lnet/minecraft/world/storage/VersionedChunkStorage;Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/registry/RegistryKey;)Z",
+                    constant = { @Constant(stringValue = "sections")})
+    private String ap_scan$modifyLightmapPurge(String constant)
+    {
+        if (DataManager.getInstance().shouldDisableLightmapPrune())
+        {
+            return "notSections";
+        }
+
+        return constant;
+    }
 }
