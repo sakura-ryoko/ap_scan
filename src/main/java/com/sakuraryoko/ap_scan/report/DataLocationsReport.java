@@ -14,14 +14,14 @@ import com.sakuraryoko.ap_scan.audio.AudioDataLocation;
 import com.sakuraryoko.ap_scan.audio.LocationsList;
 import com.sakuraryoko.ap_scan.data.DataManager;
 
-public class FileLocationsReport
+public class DataLocationsReport
 {
-	private static final FileLocationsReport INSTANCE = new FileLocationsReport();
-	public static FileLocationsReport getInstance() {return INSTANCE;}
+	private static final DataLocationsReport INSTANCE = new DataLocationsReport();
+	public static DataLocationsReport getInstance() { return INSTANCE; }
 
 	private final String REPORT_SUFFIX = "Locations";
 
-	private FileLocationsReport() {}
+	private DataLocationsReport() {}
 
 	public void runReport(Path dir, String name)
 	{
@@ -94,11 +94,11 @@ public class FileLocationsReport
 		try
 		{
 			Files.write(file, lines);
-			ApScan.LOGGER.warn("FileLocations: Wrote report file '{}'", file.toAbsolutePath().toString());
+			ApScan.LOGGER.warn("DataLocationsReport: Wrote report file '{}'", file.toAbsolutePath().toString());
 		}
 		catch (IOException err)
 		{
-			ApScan.LOGGER.error("writeAllLines: Exception writing report file '{}'; {}", file.toAbsolutePath().toString(), err.getLocalizedMessage());
+			ApScan.LOGGER.error("DataLocationsReport: Exception writing report file '{}'; {}", file.toAbsolutePath().toString(), err.getLocalizedMessage());
 		}
 	}
 }

@@ -6,7 +6,8 @@ import com.sakuraryoko.ap_scan.data.ConfigData;
 import com.sakuraryoko.ap_scan.data.DataManager;
 import com.sakuraryoko.ap_scan.data.DirectoryData;
 import com.sakuraryoko.ap_scan.data.PlayerData;
-import com.sakuraryoko.ap_scan.report.FileLocationsReport;
+import com.sakuraryoko.ap_scan.report.DataLocationsReport;
+import com.sakuraryoko.ap_scan.report.MissingFilesReport;
 import com.sakuraryoko.ap_scan.report.UnusedFilesReport;
 
 public class ProcessEvents
@@ -37,10 +38,13 @@ public class ProcessEvents
 		}
 
 		ApScan.LOGGER.info("*** Exporting Reports ***");
-		UnusedFilesReport.getInstance().runReport(
+		DataLocationsReport.getInstance().runReport(
 				DataManager.getInstance().getReportsPath(), DataManager.getInstance().getReportName()
 		);
-		FileLocationsReport.getInstance().runReport(
+		MissingFilesReport.getInstance().runReport(
+				DataManager.getInstance().getReportsPath(), DataManager.getInstance().getReportName()
+		);
+		UnusedFilesReport.getInstance().runReport(
 				DataManager.getInstance().getReportsPath(), DataManager.getInstance().getReportName()
 		);
 

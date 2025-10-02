@@ -2,7 +2,6 @@ package com.sakuraryoko.ap_scan.report;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.ZonedDateTime;
@@ -15,11 +14,12 @@ import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.audio.AudioFile;
 import com.sakuraryoko.ap_scan.audio.AudioFileList;
 import com.sakuraryoko.ap_scan.data.DataManager;
+import com.sakuraryoko.ap_scan.util.FileNameUtils;
 
 public class UnusedFilesReport
 {
 	private static final UnusedFilesReport INSTANCE = new UnusedFilesReport();
-	public static UnusedFilesReport getInstance() {return INSTANCE;}
+	public static UnusedFilesReport getInstance() { return INSTANCE; }
 
 	private final String CONFIG_SUFFIX = "ConfigUnused";
 	private final String PATH_SUFFIX = "DirectoryUnused";
@@ -158,7 +158,7 @@ public class UnusedFilesReport
 		}
 		catch (IOException err)
 		{
-			ApScan.LOGGER.error("writeAllLines: Exception writing report file '{}'; {}", file.toAbsolutePath().toString(), err.getLocalizedMessage());
+			ApScan.LOGGER.error("UnusedFilesReport: Exception writing report file '{}'; {}", file.toAbsolutePath().toString(), err.getLocalizedMessage());
 		}
 	}
 
@@ -210,28 +210,6 @@ public class UnusedFilesReport
 
 	private String getNameWithoutExtension(Path file)
 	{
-		String s = file.getFileName().toString();
-		String separator = FileSystems.getDefault().getSeparator();
-		String filename;
-
-		int lastSeparatorIndex = s.lastIndexOf(separator);
-
-		if (lastSeparatorIndex == -1)
-		{
-			filename = s;
-		}
-		else
-		{
-			filename = s.substring(lastSeparatorIndex + 1);
-		}
-
-		// Remove the extension.
-		int extensionIndex = filename.lastIndexOf(".");
-		if (extensionIndex == -1)
-		{
-			return filename;
-		}
-
-		return filename.substring(0, extensionIndex);
+		return FileNameUtils.getFileNameWithoutExtension(file.getFileName().toString());
 	}
 }
