@@ -85,7 +85,7 @@ public class MissingFilesReport
 
 		if (!DataManager.getInstance().getConfigList().isEmpty())
 		{
-			this.runFromConfigReport(file1, name, nowRfc);
+			this.runFromConfigReport(file2, name, nowRfc);
 		}
 	}
 
