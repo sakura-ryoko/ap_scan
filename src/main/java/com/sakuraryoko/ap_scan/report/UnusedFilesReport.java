@@ -19,7 +19,6 @@ import com.sakuraryoko.ap_scan.data.DataManager;
 public class UnusedFilesReport
 {
 	private static final UnusedFilesReport INSTANCE = new UnusedFilesReport();
-
 	public static UnusedFilesReport getInstance() {return INSTANCE;}
 
 	private final String CONFIG_SUFFIX = "ConfigUnused";
@@ -27,7 +26,7 @@ public class UnusedFilesReport
 
 	private final AudioFileList unusedFiles;
 
-	public UnusedFilesReport()
+	private UnusedFilesReport()
 	{
 		this.unusedFiles = new AudioFileList();
 	}
@@ -155,6 +154,7 @@ public class UnusedFilesReport
 		try
 		{
 			Files.write(file, lines);
+			ApScan.LOGGER.warn("UnusedFilesReport: Wrote report file '{}'", file.toAbsolutePath().toString());
 		}
 		catch (IOException err)
 		{

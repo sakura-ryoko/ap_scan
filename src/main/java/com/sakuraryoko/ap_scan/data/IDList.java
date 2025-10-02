@@ -47,6 +47,7 @@ public class IDList
 			"minecraft:jukebox",
 			"minecraft:chest",
 			"minecraft:shulker_box",
+			"minecraft:skull",
 			"minecraft:dispenser",
 			"minecraft:dropper",
 			"minecraft:hopper",
@@ -62,7 +63,7 @@ public class IDList
 	/**
 	 * Valid Music Disc IDs
 	 */
-	public static List<String> RECORD_ID_LIST = ImmutableList.of(
+	public static List<String> ITEM_ID_LIST = ImmutableList.of(
 			"minecraft:music_disc_13",
 			"minecraft:music_disc_cat",
 			"minecraft:music_disc_blocks",
@@ -83,7 +84,24 @@ public class IDList
 			"minecraft:music_disc_5",
 			"minecraft:music_disc_pigstep",
 			"minecraft:music_disc_precipice",
-			"minecraft:music_disc_tears"
+			"minecraft:music_disc_tears",
+
+			"minecraft:skeleton_skull",
+			"minecraft:skeleton_wall_skull",
+			"minecraft:wither_skeleton_skull",
+			"minecraft:wither_skeleton_wall_skull",
+			"minecraft:zombie_head",
+			"minecraft:zombie_wall_head",
+			"minecraft:player_head",
+			"minecraft:player_wall_head",
+			"minecraft:creeper_head",
+			"minecraft:creeper_wall_head",
+			"minecraft:dragon_head",
+			"minecraft:dragon_wall_head",
+			"minecraft:piglin_head",
+			"minecraft:piglin_wall_head",
+
+			"minecraft:goat_horn"
 	);
 
 	/**

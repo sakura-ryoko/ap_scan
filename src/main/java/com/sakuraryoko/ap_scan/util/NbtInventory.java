@@ -435,12 +435,17 @@ public class NbtInventory implements AutoCloseable
 			NbtCompound nbt = checkForIDOverrides((NbtCompound) list.get(i));
 			String id = nbt.getString(NbtKeys.ID, "");
 
-			if (IDList.RECORD_ID_LIST.contains(id) && Reference.DEBUG)
+			if (IDList.ITEM_ID_LIST.contains(id) && Reference.DEBUG)
 			{
-				LOGGER.info("fromNbtList(): [{}]: NBT: [{}]", i, nbt.toString());
+				LOGGER.info("fromNbtList(): [{}]: NBT/ITEM: [{}]", i, nbt.toString());
 			}
 
-            // Some lists, such as the "Inventory" tag does not include slot ID's
+	        if (IDList.TILE_ID_LIST.contains(id) && Reference.DEBUG)
+	        {
+		        LOGGER.info("fromNbtList(): [{}]: NBT/TILE: [{}]", i, nbt.toString());
+	        }
+
+	        // Some lists, such as the "Inventory" tag does not include slot ID's
             if (noSlotId)
             {
                 slot = new StackWithSlot(i, ItemStack.CODEC.parse(registry.getOps(NbtOps.INSTANCE), nbt).getPartialOrThrow());

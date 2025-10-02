@@ -4,18 +4,19 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
 
 import net.minecraft.inventory.Inventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtList;
 import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.util.Uuids;
+import net.minecraft.util.math.Vec3d;
 
 import com.sakuraryoko.ap_scan.ApScan;
+import com.sakuraryoko.ap_scan.audio.LocationType;
 import com.sakuraryoko.ap_scan.audio.NbtAudioUtil;
-import com.sakuraryoko.ap_scan.util.DataFixerUtils;
-import com.sakuraryoko.ap_scan.util.NbtInventory;
-import com.sakuraryoko.ap_scan.util.NbtKeys;
-import com.sakuraryoko.ap_scan.util.NbtUtils;
+import com.sakuraryoko.ap_scan.util.*;
 
 public class PlayerData
 {
@@ -31,11 +32,12 @@ public class PlayerData
 
 			for (Path entry : stream)
 			{
+				ApScan.debugLog("PlayersFileFilter#readAudioFileListFromPath(): Each file '{}'", entry.getFileName().toString());
 				processEachPlayerDat(entry);
 				count++;
 			}
 
-			ApScan.LOGGER.info("PlayerData: Scanned {} Player Data files.", count);
+			ApScan.LOGGER.warn("PlayerData: Scanned [{}] Player Data files.", count);
 		}
 		catch (Exception err)
 		{
@@ -59,13 +61,19 @@ public class PlayerData
 
 		NbtList enderItems = fixedNbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
 		NbtList inventory = fixedNbt.getListOrEmpty(NbtKeys.INVENTORY);
+		final UUID uuid = fixedNbt.get(NbtKeys.UUID, Uuids.INT_STREAM_CODEC).orElse(UUID.fromString(FileNameUtils.getFileNameWithoutExtension(file.getFileName().toString())));
+		final Vec3d pos = fixedNbt.get(NbtKeys.POS, Vec3d.CODEC).orElse(Vec3d.ZERO);
+		final String desc = getPlayerDesc(uuid, pos);
+
+//		System.out.printf("PLAYER: nbt [%s]\n", fixedNbt.toString());
 
 		try (NbtInventory enderInv = NbtInventory.fromNbtList(enderItems, false, registry))
 		{
 			if (enderInv != null)
 			{
 //				enderInv.dumpInv();
-				processEachInventory(enderInv.toInventory(NbtInventory.DEFAULT_SIZE), registry, oldDataVersion);
+				processEachInventory(enderInv.toInventory(NbtInventory.DEFAULT_SIZE), registry, oldDataVersion,
+				                     LocationType.PLAYER_ENDER_CHEST, desc);
 			}
 		}
 		catch (Exception err)
@@ -78,7 +86,8 @@ public class PlayerData
 			if (inv != null)
 			{
 //				inv.dumpInv();
-				processEachInventory(inv.toInventory(NbtInventory.PLAYER_SIZE), registry, oldDataVersion);
+				processEachInventory(inv.toInventory(NbtInventory.PLAYER_SIZE), registry, oldDataVersion,
+				                     LocationType.PLAYER_INVENTORY, desc);
 			}
 		}
 		catch (Exception err)
@@ -87,14 +96,23 @@ public class PlayerData
 		}
 	}
 
-	public static void processEachInventory(Inventory inv, DynamicRegistryManager registry, int oldDataVersion)
+	public static String getPlayerDesc(UUID uuid, Vec3d pos)
+	{
+		return "Player[" +
+				"{UUID="+uuid.toString()+"}" +
+				",{Pos="+pos.toString()+"}" +
+				"]";
+	}
+
+	public static void processEachInventory(Inventory inv, DynamicRegistryManager registry, int oldDataVersion,
+	                                        LocationType type, String desc)
 	{
 		if (inv == null || inv.isEmpty())
 		{
 			return;
 		}
 
-		NbtAudioUtil.processEachInventory(inv, registry, oldDataVersion);
+		NbtAudioUtil.processEachInventory(inv, registry, oldDataVersion, type, desc);
 	}
 
 	public static class PlayersFileFilter implements DirectoryStream.Filter<Path>

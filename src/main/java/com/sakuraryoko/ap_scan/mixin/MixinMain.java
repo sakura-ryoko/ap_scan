@@ -29,7 +29,7 @@ import com.sakuraryoko.ap_scan.event.ProcessEvents;
 public class MixinMain
 {
 	@Shadow @Final private static Logger LOGGER;
-	@Unique private static final String logPrefix = "("+ Reference.MOD_ID+")";
+	@Unique private static final String logPrefix = "("+Reference.MOD_ID+")";
 
 	@ModifyVariable(method = "main", at = @At("HEAD"), argsOnly = true)
 	private static String[] ap_scan$onLaunchServer(String[] value)
@@ -48,15 +48,15 @@ public class MixinMain
 		{
 			String entry = value[i];
 
-			if (entry.equalsIgnoreCase("--forceUpgrade"))
+			if (entry.equalsIgnoreCase(DataManager.FORCE_UPGRADE_PARAM))
 			{
 				hasForceUpgrade = true;
 			}
-			else if (entry.equalsIgnoreCase("--eraseCache"))
+			else if (entry.equalsIgnoreCase(DataManager.ERASE_CACHE_PARAM))
 			{
 				hasEraseCache = true;
 			}
-			else if (entry.equalsIgnoreCase("--recreateRegionFiles"))
+			else if (entry.equalsIgnoreCase(DataManager.RECREATE_REGION_FILES_PARAM))
 			{
 				hasRecreateRegionFiles = true;
 			}
@@ -120,11 +120,19 @@ public class MixinMain
 			{
 				List<String> list = new java.util.ArrayList<>(Arrays.stream(value).toList());
 
-				list.add("--recreateRegionFiles");
-
-				if (!hasEraseCache)
+				if (DataManager.getInstance().shouldForceUpgrade())
 				{
-					list.add("--eraseCache");
+					list.add(DataManager.FORCE_UPGRADE_PARAM);
+				}
+
+				if (DataManager.getInstance().shouldRecreateRegionFiles())
+				{
+					list.add(DataManager.RECREATE_REGION_FILES_PARAM);
+				}
+
+				if (!hasEraseCache && DataManager.getInstance().shouldEraseCache())
+				{
+					list.add(DataManager.ERASE_CACHE_PARAM);
 				}
 
 				if (hasStopServer)

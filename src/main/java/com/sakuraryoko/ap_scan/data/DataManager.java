@@ -8,6 +8,7 @@ import net.minecraft.util.WorldSavePath;
 import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.Reference;
 import com.sakuraryoko.ap_scan.audio.AudioFileList;
+import com.sakuraryoko.ap_scan.audio.LocationsList;
 
 public class DataManager
 {
@@ -23,10 +24,16 @@ public class DataManager
 	public static final String DEFLATE_LEVEL_PARAM			= "--deflateLevel9";
 	public static final String RELOCATE_UNUSED_PARAM		= "--relocateUnused";
     public static final String DISABLE_LIGHTMAP_PRUNE_PARAM = "--noPruneLightmap";
+	public static final String FORCE_UPGRADE_PARAM          = "--forceUpgrade";
+	public static final String ERASE_CACHE_PARAM            = "--eraseCache";
+	public static final String RECREATE_REGION_FILES_PARAM  = "--recreateRegionFiles";
 
 	/**
 	 * Default settings (Non-testing these should be false)
 	 */
+	private boolean forceUpgrade = true;
+	private boolean eraseCache = true;
+	private boolean recreateRegionFiles = true;
 	private boolean stopServer = true;
 	private boolean runReports = true;
 	private boolean adjustDeflateLevel = true;
@@ -55,6 +62,7 @@ public class DataManager
 	private Path reportsPath;
 	private String reportName;
 
+	private final LocationsList locationsList;
 	private final AudioFileList pathList;
 	private final AudioFileList worldList;
 	private AudioFileList configList;
@@ -67,6 +75,7 @@ public class DataManager
 		this.updateReportsPath(null);
 		this.registry = DynamicRegistryManager.EMPTY;
 		this.reportName = Reference.MOD_ID+"-Report";
+		this.locationsList = new LocationsList();
 		this.pathList = new AudioFileList();
 		this.configList = new AudioFileList();
 		this.worldList = new AudioFileList();
@@ -131,6 +140,8 @@ public class DataManager
 
 	public void setRegistry(DynamicRegistryManager registry) { this.registry = registry; }
 
+	public LocationsList getLocationsList() { return this.locationsList; }
+
 	public AudioFileList getPathList() { return this.pathList; }
 
 	public AudioFileList getConfigList() { return this.configList; }
@@ -174,4 +185,10 @@ public class DataManager
 	public boolean shouldRelocateUnused() { return this.relocateUnused; }
 
     public boolean shouldDisableLightmapPrune() { return this.disableLightmapPruning; }
+
+	public boolean shouldForceUpgrade() { return this.forceUpgrade; }
+
+	public boolean shouldEraseCache() { return this.eraseCache; }
+
+	public boolean shouldRecreateRegionFiles() { return this.recreateRegionFiles; }
 }
