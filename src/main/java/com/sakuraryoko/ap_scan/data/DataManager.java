@@ -31,9 +31,9 @@ public class DataManager
 	/**
 	 * Default settings (Non-testing these should be false)
 	 */
-	private boolean forceUpgrade = true;
-	private boolean eraseCache = true;
-	private boolean recreateRegionFiles = true;
+	private final boolean forceUpgrade = true;
+	private final boolean eraseCache = true;
+	private final boolean recreateRegionFiles = true;
 	private boolean stopServer = true;
 	private boolean runReports = true;
 	private boolean adjustDeflateLevel = true;
