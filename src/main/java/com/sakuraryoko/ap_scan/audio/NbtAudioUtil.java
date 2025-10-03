@@ -186,8 +186,8 @@ public class NbtAudioUtil
 				{
 					switch (key)
 					{
-						case "minecraft:custom_data" -> data = comp.get(key, NbtComponent.CODEC).orElse(NbtComponent.DEFAULT).copyNbt();
-						case "minecraft:lore" ->
+						case "minecraft:custom_data", "custom_data" -> data = comp.get(key, NbtComponent.CODEC).orElse(NbtComponent.DEFAULT).copyNbt();
+						case "minecraft:lore", "lore" ->
 						{
 							LoreComponent loreComp = comp.get(key, LoreComponent.CODEC).orElse(LoreComponent.DEFAULT);
 
@@ -196,7 +196,7 @@ public class NbtAudioUtil
 								lore = loreComp.lines().getFirst().getString();
 							}
 						}
-						case "minecraft:profile" ->
+						case "minecraft:profile", "profile" ->
 						{
 							ProfileComponent profileComp = comp.get(key, ProfileComponent.CODEC).orElse(null);
 
@@ -206,6 +206,18 @@ public class NbtAudioUtil
 								          profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
 							}
 						}
+					}
+				}
+
+				// It might not always be listed under the "components" tag
+				if (nbt.contains(NbtKeys.PROFILE))
+				{
+					ProfileComponent profileComp = nbt.get(NbtKeys.PROFILE, ProfileComponent.CODEC).orElse(null);
+
+					if (profileComp != null)
+					{
+						profile = profileComp.name().isPresent() ? profileComp.name().get() :
+						          profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
 					}
 				}
 
