@@ -223,8 +223,29 @@ public class NbtAudioUtil
 
 				if (data != null && !data.isEmpty())
 				{
-					final String lore2 = lore != null && !lore.isEmpty() ? lore :
-					                     profile != null ? profile : "skull";
+					String lore2;
+
+					if (lore != null && !lore.isEmpty())
+					{
+						lore2 = lore;
+					}
+					else if (profile != null && !profile.isEmpty())
+					{
+						lore2 = profile;
+					}
+					else
+					{
+						lore2 = "skull";
+					}
+
+					if (profile == null || profile.isEmpty())
+					{
+						profile = lore2;
+					}
+
+					final String adjDesc = desc.replaceAll("Name=skull", String.format("Name=\"%s\"", profile));
+					System.out.printf("SKULL LORE2: --> %s\n", lore2);
+					System.out.printf("SKULL ADJ-DESC: --> %s\n", adjDesc);
 
 					if (data.contains(CUSTOM_SOUND))
 					{
@@ -232,7 +253,7 @@ public class NbtAudioUtil
 								(uuid) ->
 								{
 									files.add(new AudioFile(uuid.toString(), lore2));
-									locations.add(new AudioDataLocation(uuid.toString(), type, desc));
+									locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
 								}
 						);
 					}
@@ -247,7 +268,7 @@ public class NbtAudioUtil
 								Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
 										(uuid) -> {
 											files.add(new AudioFile(uuid.toString(), lore2));
-											locations.add(new AudioDataLocation(uuid.toString(), type, desc));
+											locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
 										}
 								);
 							}
