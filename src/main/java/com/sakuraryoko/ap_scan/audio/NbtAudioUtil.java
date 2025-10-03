@@ -3,6 +3,8 @@ package com.sakuraryoko.ap_scan.audio;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
+import net.minecraft.text.Text;
+import net.minecraft.text.TextCodecs;
 import org.apache.commons.lang3.tuple.Pair;
 
 import net.minecraft.component.DataComponentTypes;
@@ -179,110 +181,157 @@ public class NbtAudioUtil
 			NbtCompound data = null;
 			String lore = null;
 			String profile = null;
+            Text itemName = null;
+            Text customName = null;
 
 			if (!comp.isEmpty())
-			{
-				for (String key : comp.getKeys())
-				{
-					switch (key)
-					{
-						case "minecraft:custom_data", "custom_data" -> data = comp.get(key, NbtComponent.CODEC).orElse(NbtComponent.DEFAULT).copyNbt();
-						case "minecraft:lore", "lore" ->
-						{
-							LoreComponent loreComp = comp.get(key, LoreComponent.CODEC).orElse(LoreComponent.DEFAULT);
+            {
+                for (String key : comp.getKeys())
+                {
+                    switch (key)
+                    {
+                        case "minecraft:custom_data", "custom_data" ->
+                                data = comp.get(key, NbtComponent.CODEC).orElse(NbtComponent.DEFAULT).copyNbt();
+                        case "minecraft:lore", "lore" ->
+                        {
+                            LoreComponent loreComp = comp.get(key, LoreComponent.CODEC).orElse(LoreComponent.DEFAULT);
 
-							if (!loreComp.lines().isEmpty())
-							{
-								lore = loreComp.lines().getFirst().getString();
-							}
-						}
-						case "minecraft:profile", "profile" ->
-						{
-							ProfileComponent profileComp = comp.get(key, ProfileComponent.CODEC).orElse(null);
+                            if (!loreComp.lines().isEmpty())
+                            {
+                                lore = loreComp.lines().getFirst().getString();
+                            }
+                        }
+                        case "minecraft:profile", "profile" ->
+                        {
+                            ProfileComponent profileComp = comp.get(key, ProfileComponent.CODEC).orElse(null);
 
-							if (profileComp != null)
-							{
-								profile = profileComp.name().isPresent() ? profileComp.name().get() :
-								          profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
-							}
-						}
-					}
-				}
+                            if (profileComp != null)
+                            {
+                                profile = profileComp.name().isPresent() ? profileComp.name().get() :
+                                          profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
+                            }
+                        }
+                        case "minecraft:item_name", "item_name" ->
+                        {
+                            itemName = comp.get(key, TextCodecs.CODEC).orElse(null);
+                        }
+                        case "minecraft:custom_name", "custom_name" ->
+                        {
+                            customName = comp.get(key, TextCodecs.CODEC).orElse(null);
+                        }
+                    }
+                }
+            }
 
-				// It might not always be listed under the "components" tag
-				if (nbt.contains(NbtKeys.PROFILE))
-				{
-					ProfileComponent profileComp = nbt.get(NbtKeys.PROFILE, ProfileComponent.CODEC).orElse(null);
+            // It might not always be listed under the "components" tag
+            if (nbt.contains(NbtKeys.PROFILE))
+            {
+                ProfileComponent profileComp = nbt.get(NbtKeys.PROFILE, ProfileComponent.CODEC).orElse(null);
 
-					if (profileComp != null)
-					{
-						profile = profileComp.name().isPresent() ? profileComp.name().get() :
-						          profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
-					}
-				}
+                if (profileComp != null)
+                {
+                    profile = profileComp.name().isPresent() ? profileComp.name().get() :
+                              profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
+                }
+            }
 
-				if (data != null && !data.isEmpty())
-				{
-					String lore2;
+            String lore2;
 
-					if (lore != null && !lore.isEmpty())
-					{
-						lore2 = lore;
-					}
-					else if (profile != null && !profile.isEmpty())
-					{
-						lore2 = profile;
-					}
-					else
-					{
-						lore2 = "skull";
-					}
+            if (lore != null && !lore.isEmpty())
+            {
+                lore2 = lore;
+            }
+            else if (profile != null && !profile.isEmpty())
+            {
+                lore2 = profile;
+            }
+            else if (itemName != null && !itemName.getString().isEmpty())
+            {
+                lore2 = itemName.getString();
+            }
+            else if (customName != null && !customName.getString().isEmpty())
+            {
+                lore2 = customName.getString();
+            }
+            else
+            {
+                lore2 = "skull";
+            }
 
-					if (profile == null || profile.isEmpty())
-					{
-						profile = lore2;
-					}
+            if (profile == null || profile.isEmpty())
+            {
+                profile = lore2;
+            }
 
-					final String adjDesc = desc.replaceAll("Name=skull", String.format("Name=\"%s\"", profile));
-					System.out.printf("SKULL LORE2: --> %s\n", lore2);
-					System.out.printf("SKULL ADJ-DESC: --> %s\n", adjDesc);
+            final String adjDesc = desc.replaceAll("Name=skull", String.format("Name=\"%s\"", profile));
+                System.out.printf("SKULL LORE2: --> %s\n", lore2);
+                System.out.printf("SKULL ADJ-DESC: --> %s\n", adjDesc);
 
-					if (data.contains(CUSTOM_SOUND))
-					{
-						data.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
-								(uuid) ->
-								{
-									files.add(new AudioFile(uuid.toString(), lore2));
-									locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
-								}
-						);
-					}
-					else if (data.contains(CUSTOM_SOUND_RANDOM))
-					{
-						NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
 
-						if (uuids != null)
-						{
-							for (NbtElement element : uuids)
-							{
-								Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
-										(uuid) -> {
-											files.add(new AudioFile(uuid.toString(), lore2));
-											locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
-										}
-								);
-							}
-						}
-					}
-					else
-					{
-						return;
-					}
+            if (nbt.contains(CUSTOM_SOUND))
+            {
+                nbt.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
+                        (uuid) ->
+                        {
+                            files.add(new AudioFile(uuid.toString(), lore2));
+                            locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
+                        });
+            }
+            else if (nbt.contains(CUSTOM_SOUND_RANDOM))
+            {
+                NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
 
-					DataManager.getInstance().getWorldList().addList(files);
-					DataManager.getInstance().getLocationsList().addList(locations);
-				}
-			}
-		}
+                if (uuids != null)
+                {
+                    for (NbtElement element : uuids)
+                    {
+                        Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
+                                (uuid) -> {
+                                    files.add(new AudioFile(uuid.toString(), lore2));
+                                    locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
+                                });
+                    }
+                }
+            }
+
+            if (data != null && !data.isEmpty())
+            {
+                if (data.contains(CUSTOM_SOUND))
+                {
+                    data.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
+                            (uuid) ->
+                            {
+                                files.add(new AudioFile(uuid.toString(), lore2));
+                                locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
+                            });
+                }
+                else if (data.contains(CUSTOM_SOUND_RANDOM))
+                {
+                    NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
+
+                    if (uuids != null)
+                    {
+                        for (NbtElement element : uuids)
+                        {
+                            Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
+                                    (uuid) -> {
+                                        files.add(new AudioFile(uuid.toString(), lore2));
+                                        locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
+                                    });
+                        }
+                    }
+                }
+                else
+                {
+                    return;
+                }
+            }
+
+            if (!files.isEmpty())
+            {
+                DataManager.getInstance().getWorldList().addList(files);
+                DataManager.getInstance().getLocationsList().addList(locations);
+            }
+        }
 	}
 }
