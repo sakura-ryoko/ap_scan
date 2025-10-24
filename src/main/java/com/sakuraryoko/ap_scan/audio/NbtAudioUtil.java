@@ -1,8 +1,12 @@
 package com.sakuraryoko.ap_scan.audio;
 
 import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.annotation.Nonnull;
 
+import com.mojang.authlib.GameProfile;
+import com.sakuraryoko.ap_scan.Reference;
 import net.minecraft.text.Text;
 import net.minecraft.text.TextCodecs;
 import org.apache.commons.lang3.tuple.Pair;
@@ -207,18 +211,15 @@ public class NbtAudioUtil
 
                             if (profileComp != null)
                             {
-                                profile = profileComp.name().isPresent() ? profileComp.name().get() :
-                                          profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
+								GameProfile gameProfile = profileComp.getGameProfile();
+								Optional<String> optName = profileComp.getName();
+								AtomicReference<String> name = new AtomicReference<>();
+								optName.ifPresentOrElse(name::set, () -> name.set(gameProfile.name()));
+                                profile = name.get();
                             }
                         }
-                        case "minecraft:item_name", "item_name" ->
-                        {
-                            itemName = comp.get(key, TextCodecs.CODEC).orElse(null);
-                        }
-                        case "minecraft:custom_name", "custom_name" ->
-                        {
-                            customName = comp.get(key, TextCodecs.CODEC).orElse(null);
-                        }
+                        case "minecraft:item_name", "item_name" -> itemName = comp.get(key, TextCodecs.CODEC).orElse(null);
+                        case "minecraft:custom_name", "custom_name" -> customName = comp.get(key, TextCodecs.CODEC).orElse(null);
                     }
                 }
             }
@@ -230,8 +231,11 @@ public class NbtAudioUtil
 
                 if (profileComp != null)
                 {
-                    profile = profileComp.name().isPresent() ? profileComp.name().get() :
-                              profileComp.uuid().isPresent() ? profileComp.uuid().get().toString() : null;
+					GameProfile gameProfile = profileComp.getGameProfile();
+					Optional<String> optName = profileComp.getName();
+					AtomicReference<String> name = new AtomicReference<>();
+					optName.ifPresentOrElse(name::set, () -> name.set(gameProfile.name()));
+					profile = name.get();
                 }
             }
 
@@ -264,9 +268,12 @@ public class NbtAudioUtil
             }
 
             final String adjDesc = desc.replaceAll("Name=skull", String.format("Name=\"%s\"", profile));
-                System.out.printf("SKULL LORE2: --> %s\n", lore2);
-                System.out.printf("SKULL ADJ-DESC: --> %s\n", adjDesc);
 
+			if (Reference.DEBUG)
+			{
+				System.out.printf("SKULL LORE2: --> %s\n", lore2);
+				System.out.printf("SKULL ADJ-DESC: --> %s\n", adjDesc);
+			}
 
             if (nbt.contains(CUSTOM_SOUND))
             {

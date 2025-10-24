@@ -113,5 +113,6 @@ public class IDList
 	{
 		ID_OVERRIDES.put("minecraft:grass", "minecraft:short_grass");
 		ID_OVERRIDES.put("minecraft:scute", "minecraft:armadillo_scute");
+		ID_OVERRIDES.put("minecraft:chain", "minecraft:iron_chain");
 	}
 }
