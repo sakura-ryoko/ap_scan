@@ -5,19 +5,18 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.apache.commons.lang3.math.Fraction;
-
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.BundleContentsComponent;
-import net.minecraft.component.type.ContainerComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.inventory.SimpleInventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.util.collection.DefaultedList;
+import net.minecraft.nbt.Tag;
+import net.minecraft.world.Container;
+import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.BundleContents;
+import net.minecraft.world.item.component.ItemContainerContents;
 
 /**
  * Cloned from MaLiLib
@@ -32,14 +31,14 @@ public class InventoryUtils
 	 * @param stackIn The item holding the inventory contents
 	 * @return ()
 	 */
-	public static DefaultedList<ItemStack> getStoredItems(ItemStack stackIn)
+	public static NonNullList<ItemStack> getStoredItems(ItemStack stackIn)
 	{
-		ContainerComponent container = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
+		ItemContainerContents container = stackIn.getComponents().get(DataComponents.CONTAINER);
 
 		if (container != null)
 		{
-			Iterator<ItemStack> iter = container.streamNonEmpty().iterator();
-			DefaultedList<ItemStack> items = DefaultedList.ofSize((int) container.streamNonEmpty().count());
+			Iterator<ItemStack> iter = container.nonEmptyStream().iterator();
+			NonNullList<ItemStack> items = NonNullList.createWithCapacity((int) container.nonEmptyStream().count());
 			int i = 0;
 
 			// Using 'container.copyTo(items)' will break Litematica's Material List
@@ -52,7 +51,7 @@ public class InventoryUtils
 			return items;
 		}
 
-		return DefaultedList.of();
+		return NonNullList.create();
 	}
 
 	/**
@@ -64,9 +63,9 @@ public class InventoryUtils
 	 * @param slotCount the maximum number of slots, and thus also the size of the list to create
 	 * @return ()
 	 */
-	public static DefaultedList<ItemStack> getStoredItems(ItemStack stackIn, int slotCount)
+	public static NonNullList<ItemStack> getStoredItems(ItemStack stackIn, int slotCount)
 	{
-		ContainerComponent itemContainer = stackIn.getComponents().get(DataComponentTypes.CONTAINER);
+		ItemContainerContents itemContainer = stackIn.getComponents().get(DataComponents.CONTAINER);
 
 		// Using itemContainer.copyTo() does not preserve empty stacks.
 		if (itemContainer != null)
@@ -83,7 +82,7 @@ public class InventoryUtils
 				slotCount = Math.min(slotCount, 256);
 			}
 
-			DefaultedList<ItemStack> items = DefaultedList.ofSize(slotCount);
+			NonNullList<ItemStack> items = NonNullList.createWithCapacity(slotCount);
 			Iterator<ItemStack> iter = itemContainer.stream().iterator();
 
 			for (int i = 0; i < slotCount; i++)
@@ -107,7 +106,7 @@ public class InventoryUtils
 		}
 		else
 		{
-			return DefaultedList.of();
+			return NonNullList.create();
 		}
 	}
 
@@ -118,7 +117,7 @@ public class InventoryUtils
 	 */
 	public static boolean bundleHasItems(ItemStack stack)
 	{
-		BundleContentsComponent bundleContainer = stack.getComponents().get(DataComponentTypes.BUNDLE_CONTENTS);
+		BundleContents bundleContainer = stack.getComponents().get(DataComponents.BUNDLE_CONTENTS);
 
 		if (bundleContainer != null)
 		{
@@ -136,11 +135,11 @@ public class InventoryUtils
 	 */
 	public static Fraction bundleOccupancy(ItemStack stack)
 	{
-		BundleContentsComponent bundleContainer = stack.getComponents().get(DataComponentTypes.BUNDLE_CONTENTS);
+		BundleContents bundleContainer = stack.getComponents().get(DataComponents.BUNDLE_CONTENTS);
 
 		if (bundleContainer != null)
 		{
-			return bundleContainer.getOccupancy();
+			return bundleContainer.weight();
 		}
 
 		return Fraction.ZERO;
@@ -154,7 +153,7 @@ public class InventoryUtils
 	 */
 	public static int bundleCountItems(ItemStack stack)
 	{
-		BundleContentsComponent bundleContainer = stack.getComponents().get(DataComponentTypes.BUNDLE_CONTENTS);
+		BundleContents bundleContainer = stack.getComponents().get(DataComponents.BUNDLE_CONTENTS);
 
 		if (bundleContainer != null)
 		{
@@ -170,15 +169,15 @@ public class InventoryUtils
 	 * @param stackIn ()
 	 * @return ()
 	 */
-	public static DefaultedList<ItemStack> getBundleItems(ItemStack stackIn)
+	public static NonNullList<ItemStack> getBundleItems(ItemStack stackIn)
 	{
-		BundleContentsComponent bundleContainer = stackIn.getComponents().getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
+		BundleContents bundleContainer = stackIn.getComponents().getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
 
-		if (bundleContainer != null && bundleContainer.equals(BundleContentsComponent.DEFAULT) == false)
+		if (bundleContainer != null && bundleContainer.equals(BundleContents.EMPTY) == false)
 		{
 			int maxSlots = bundleContainer.size();
-			DefaultedList<ItemStack> items = DefaultedList.ofSize(maxSlots);
-			Iterator<ItemStack> iter = bundleContainer.stream().iterator();
+			NonNullList<ItemStack> items = NonNullList.createWithCapacity(maxSlots);
+			Iterator<ItemStack> iter = bundleContainer.itemCopyStream().iterator();
 
 			while (iter.hasNext())
 			{
@@ -193,7 +192,7 @@ public class InventoryUtils
 			return items;
 		}
 
-		return DefaultedList.of();
+		return NonNullList.create();
 	}
 
 	/**
@@ -203,11 +202,11 @@ public class InventoryUtils
 	 * @param maxSlots ()
 	 * @return ()
 	 */
-	public static DefaultedList<ItemStack> getBundleItems(ItemStack stackIn, int maxSlots)
+	public static NonNullList<ItemStack> getBundleItems(ItemStack stackIn, int maxSlots)
 	{
-		BundleContentsComponent bundleContainer = stackIn.getComponents().getOrDefault(DataComponentTypes.BUNDLE_CONTENTS, BundleContentsComponent.DEFAULT);
+		BundleContents bundleContainer = stackIn.getComponents().getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
 
-		if (bundleContainer != null && bundleContainer.equals(BundleContentsComponent.DEFAULT) == false)
+		if (bundleContainer != null && bundleContainer.equals(BundleContents.EMPTY) == false)
 		{
 			int defMaxSlots = bundleContainer.size();
 
@@ -220,8 +219,8 @@ public class InventoryUtils
 				maxSlots = maxSlots < 64 ? maxSlots : defMaxSlots;
 			}
 
-			DefaultedList<ItemStack> items = DefaultedList.ofSize(maxSlots);
-			Iterator<ItemStack> iter = bundleContainer.stream().iterator();
+			NonNullList<ItemStack> items = NonNullList.createWithCapacity(maxSlots);
+			Iterator<ItemStack> iter = bundleContainer.itemCopyStream().iterator();
 			int limit = 0;
 
 			while (iter.hasNext() && limit < maxSlots)
@@ -233,7 +232,7 @@ public class InventoryUtils
 			return items;
 		}
 
-		return DefaultedList.of();
+		return NonNullList.create();
 	}
 
 	/**
@@ -242,21 +241,21 @@ public class InventoryUtils
 	 * @param nbt ()
 	 * @return ()
 	 */
-	public static boolean hasNbtItems(NbtCompound nbt)
+	public static boolean hasNbtItems(CompoundTag nbt)
 	{
 		if (nbt.contains(NbtKeys.ITEMS))
 		{
-			NbtList tagList = nbt.getListOrEmpty(NbtKeys.ITEMS);
+			ListTag tagList = nbt.getListOrEmpty(NbtKeys.ITEMS);
 			return !tagList.isEmpty();
 		}
 		else if (nbt.contains(NbtKeys.INVENTORY))
 		{
-			NbtList tagList = nbt.getListOrEmpty(NbtKeys.INVENTORY);
+			ListTag tagList = nbt.getListOrEmpty(NbtKeys.INVENTORY);
 			return !tagList.isEmpty();
 		}
 		else if (nbt.contains(NbtKeys.ENDER_ITEMS))
 		{
-			NbtList tagList = nbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
+			ListTag tagList = nbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
 			return !tagList.isEmpty();
 		}
 		else if (nbt.contains(NbtKeys.ITEM))
@@ -281,7 +280,7 @@ public class InventoryUtils
 	 * @param nbt     The tag holding the inventory contents
 	 * @return ()
 	 */
-	public static Inventory getNbtInventory(@Nonnull NbtCompound nbt, @Nonnull DynamicRegistryManager registry)
+	public static Container getNbtInventory(@Nonnull CompoundTag nbt, @Nonnull RegistryAccess registry)
 	{
 		return getNbtInventory(nbt, -1, registry);
 	}
@@ -295,7 +294,7 @@ public class InventoryUtils
 	 * @param registry  The Dynamic Registry object
 	 * @return ()
 	 */
-	public static Inventory getNbtInventory(@Nonnull NbtCompound nbt, int slotCount, @Nonnull DynamicRegistryManager registry)
+	public static Container getNbtInventory(@Nonnull CompoundTag nbt, int slotCount, @Nonnull RegistryAccess registry)
 	{
 		if (slotCount > NbtInventory.MAX_SIZE)
 		{
@@ -309,7 +308,7 @@ public class InventoryUtils
 			if (slotCount < 0)
 			{
 				// Uses slots
-				NbtList list = nbt.getListOrEmpty(NbtKeys.ITEMS);
+				ListTag list = nbt.getListOrEmpty(NbtKeys.ITEMS);
 				slotCount = list.size();
 			}
 
@@ -326,13 +325,13 @@ public class InventoryUtils
 		}
 		else if (nbt.contains(NbtKeys.INVENTORY))
 		{
-			String id = nbt.getString(NbtKeys.ID, "");
+			String id = nbt.getStringOr(NbtKeys.ID, "");
 			boolean isPlayer = Objects.equals(id, "minecraft:player");
 
 			// Entities use this (Piglin, Villager, a few others)
 			if (slotCount < 0)
 			{
-				NbtList list = nbt.getListOrEmpty(NbtKeys.INVENTORY);
+				ListTag list = nbt.getListOrEmpty(NbtKeys.INVENTORY);
 				// Doesn't use slots
 				slotCount = list.size();
 			}
@@ -352,7 +351,7 @@ public class InventoryUtils
 		else if (nbt.contains(NbtKeys.ENDER_ITEMS))
 		{
 			// Ender Chest
-			NbtList list = nbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
+			ListTag list = nbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
 
 			if (slotCount < 0)
 			{
@@ -374,8 +373,8 @@ public class InventoryUtils
 		{
 			// item (DecoratedPot, ItemEntity)
 			ItemStack entry = fromNbtOrEmpty(registry, nbt.get(NbtKeys.ITEM));
-			SimpleInventory inv = new SimpleInventory(1);
-			inv.setStack(0, entry.copy());
+			SimpleContainer inv = new SimpleContainer(1);
+			inv.setItem(0, entry.copy());
 
 			return inv;
 		}
@@ -383,8 +382,8 @@ public class InventoryUtils
 		{
 			// Item (Item Frame)
 			ItemStack entry = fromNbtOrEmpty(registry, nbt.get(NbtKeys.ITEM_2));
-			SimpleInventory inv = new SimpleInventory(1);
-			inv.setStack(0, entry.copy());
+			SimpleContainer inv = new SimpleContainer(1);
+			inv.setItem(0, entry.copy());
 
 			return inv;
 		}
@@ -392,8 +391,8 @@ public class InventoryUtils
 		{
 			// Book (Lectern)
 			ItemStack entry = fromNbtOrEmpty(registry, nbt.get(NbtKeys.BOOK));
-			SimpleInventory inv = new SimpleInventory(1);
-			inv.setStack(0, entry.copy());
+			SimpleContainer inv = new SimpleContainer(1);
+			inv.setItem(0, entry.copy());
 
 			return inv;
 		}
@@ -401,8 +400,8 @@ public class InventoryUtils
 		{
 			// RecordItem (Jukebox)
 			ItemStack entry = fromNbtOrEmpty(registry, nbt.get(NbtKeys.RECORD));
-			SimpleInventory inv = new SimpleInventory(1);
-			inv.setStack(0, entry.copy());
+			SimpleContainer inv = new SimpleContainer(1);
+			inv.setItem(0, entry.copy());
 
 			return inv;
 		}
@@ -416,14 +415,14 @@ public class InventoryUtils
 	 * @param registry ()
 	 * @return ()
 	 */
-	public static ItemStack fromNbtOrEmpty(@Nonnull DynamicRegistryManager registry, @Nullable NbtElement tag)
+	public static ItemStack fromNbtOrEmpty(@Nonnull RegistryAccess registry, @Nullable Tag tag)
 	{
 		if (tag == null)
 		{
 			return ItemStack.EMPTY;
 		}
 
-		return ItemStack.CODEC.parse(registry.getOps(NbtOps.INSTANCE), tag).resultOrPartial().orElse(ItemStack.EMPTY);
+		return ItemStack.CODEC.parse(registry.createSerializationContext(NbtOps.INSTANCE), tag).resultOrPartial().orElse(ItemStack.EMPTY);
 	}
 
 	/**
@@ -433,9 +432,9 @@ public class InventoryUtils
 	 * @param key ()
 	 * @return ()
 	 */
-	public static ItemStack getStackCodec(@Nonnull NbtCompound nbt, @Nonnull DynamicRegistryManager registry, String key)
+	public static ItemStack getStackCodec(@Nonnull CompoundTag nbt, @Nonnull RegistryAccess registry, String key)
 	{
-		return nbt.get(key, ItemStack.CODEC, registry.getOps(NbtOps.INSTANCE)).orElse(ItemStack.EMPTY);
+		return nbt.read(key, ItemStack.CODEC, registry.createSerializationContext(NbtOps.INSTANCE)).orElse(ItemStack.EMPTY);
 	}
 
 	/**
@@ -446,9 +445,9 @@ public class InventoryUtils
 	 * @param key ()
 	 * @return ()
 	 */
-	public static NbtCompound putStackCodec(@Nonnull NbtCompound nbt, @Nonnull DynamicRegistryManager registry, @Nonnull ItemStack stack, String key)
+	public static CompoundTag putStackCodec(@Nonnull CompoundTag nbt, @Nonnull RegistryAccess registry, @Nonnull ItemStack stack, String key)
 	{
-		nbt.put(key, ItemStack.CODEC, registry.getOps(NbtOps.INSTANCE), stack);
+		nbt.store(key, ItemStack.CODEC, registry.createSerializationContext(NbtOps.INSTANCE), stack);
 		return nbt;
 	}
 }

@@ -1,10 +1,8 @@
 package com.sakuraryoko.ap_scan.data;
 
 import java.nio.file.Path;
-
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.util.WorldSavePath;
-
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.world.level.storage.LevelResource;
 import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.Reference;
 import com.sakuraryoko.ap_scan.audio.AudioFileList;
@@ -53,7 +51,7 @@ public class DataManager
 	/**
 	 * Internal Use Only
 	 */
-	private DynamicRegistryManager registry;
+	private RegistryAccess registry;
 	private Path rootPath;
 	private Path worldPath;
 	private Path audioPath;
@@ -73,7 +71,7 @@ public class DataManager
 		this.rootPath = dir;
 		this.updateWorldPath(dir.resolve(WORLD_DEFAULT), false);
 		this.updateReportsPath(null);
-		this.registry = DynamicRegistryManager.EMPTY;
+		this.registry = RegistryAccess.EMPTY;
 		this.reportName = Reference.MOD_ID+"-Report";
 		this.locationsList = new LocationsList();
 		this.pathList = new AudioFileList();
@@ -121,7 +119,7 @@ public class DataManager
 		this.worldPath = dir;
 		this.audioPath = dir.resolve(AUDIO_PLAYER_DATA);
 		this.audioUnusedPath = dir.resolve(AUDIO_PLAYER_UNUSED);
-		this.playerDataPath = dir.resolve(WorldSavePath.PLAYERDATA.getRelativePath());
+		this.playerDataPath = dir.resolve(LevelResource.PLAYER_DATA_DIR.getId());
 	}
 
 	public void updateReportsPath(String dir)
@@ -136,9 +134,9 @@ public class DataManager
 		}
 	}
 
-	public DynamicRegistryManager getRegistry() { return this.registry; }
+	public RegistryAccess getRegistry() { return this.registry; }
 
-	public void setRegistry(DynamicRegistryManager registry) { this.registry = registry; }
+	public void setRegistry(RegistryAccess registry) { this.registry = registry; }
 
 	public LocationsList getLocationsList() { return this.locationsList; }
 

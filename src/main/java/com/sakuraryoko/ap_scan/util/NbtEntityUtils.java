@@ -2,11 +2,10 @@ package com.sakuraryoko.ap_scan.util;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registries;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
 
 /**
  * Cloned from MaLiLib
@@ -19,11 +18,11 @@ public class NbtEntityUtils
 	 * @param nbt ()
 	 * @return ()
 	 */
-	public static @Nullable EntityType<?> getEntityTypeFromNbt(@Nonnull NbtCompound nbt)
+	public static @Nullable EntityType<?> getEntityTypeFromNbt(@Nonnull CompoundTag nbt)
 	{
 		if (nbt.contains(NbtKeys.ID))
 		{
-			return Registries.ENTITY_TYPE.getOptionalValue(Identifier.tryParse(nbt.getString(NbtKeys.ID, ""))).orElse(null);
+			return BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.tryParse(nbt.getStringOr(NbtKeys.ID, ""))).orElse(null);
 		}
 
 		return null;

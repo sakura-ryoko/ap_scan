@@ -7,25 +7,23 @@ import javax.annotation.Nonnull;
 
 import com.mojang.authlib.GameProfile;
 import com.sakuraryoko.ap_scan.Reference;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
 import org.apache.commons.lang3.tuple.Pair;
-
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.LoreComponent;
-import net.minecraft.component.type.NbtComponent;
-import net.minecraft.component.type.ProfileComponent;
-import net.minecraft.inventory.Inventory;
-import net.minecraft.item.ItemStack;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtOps;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.registry.tag.ItemTags;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.collection.DefaultedList;
-
+import net.minecraft.nbt.Tag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.world.Container;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.component.ResolvableProfile;
 import com.sakuraryoko.ap_scan.data.DataManager;
 import com.sakuraryoko.ap_scan.util.InventoryUtils;
 import com.sakuraryoko.ap_scan.util.NbtKeys;
@@ -35,28 +33,28 @@ public class NbtAudioUtil
 	public static final String CUSTOM_SOUND = "CustomSound";
     public static final String CUSTOM_SOUND_RANDOM = "CustomSoundRandomized";
 
-	public static void processEachNbt(NbtCompound nbt, @Nonnull DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachNbt(CompoundTag nbt, @Nonnull RegistryAccess registry, int oldDataVersion,
 	                                  LocationType type, String desc)
 	{
 		processEachInventory(InventoryUtils.getNbtInventory(nbt, registry), registry, oldDataVersion, type, desc);
 	}
 
-	public static void processEachInventory(Inventory inv, @Nonnull DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachInventory(Container inv, @Nonnull RegistryAccess registry, int oldDataVersion,
 	                                        LocationType type, String desc)
 	{
 		if (inv == null || inv.isEmpty()) return;
 
-		for (int i = 0; i < inv.size(); i++)
+		for (int i = 0; i < inv.getContainerSize(); i++)
 		{
-			ItemStack entry = inv.getStack(i);
+			ItemStack entry = inv.getItem(i);
 
 			if (!entry.isEmpty())
 			{
-				if (entry.isIn(ItemTags.BUNDLES))
+				if (entry.is(ItemTags.BUNDLES))
 				{
 					processEachBundle(entry, registry, oldDataVersion, type, desc);
 				}
-				else if (entry.contains(DataComponentTypes.CONTAINER))
+				else if (entry.has(DataComponents.CONTAINER))
 				{
 					processEachContainer(entry, registry, oldDataVersion, type, desc);
 				}
@@ -74,18 +72,18 @@ public class NbtAudioUtil
 		}
 	}
 
-	public static void processEachStacks(DefaultedList<ItemStack> stacks, @Nonnull DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachStacks(NonNullList<ItemStack> stacks, @Nonnull RegistryAccess registry, int oldDataVersion,
 	                                     LocationType type, String desc)
 	{
 		if (stacks.isEmpty()) return;
 
 		for (ItemStack stack : stacks)
 		{
-			if (stack.isIn(ItemTags.BUNDLES))
+			if (stack.is(ItemTags.BUNDLES))
 			{
 				processEachBundle(stack, registry, oldDataVersion, type, desc);
 			}
-			else if (stack.contains(DataComponentTypes.CONTAINER))
+			else if (stack.has(DataComponents.CONTAINER))
 			{
 				processEachContainer(stack, registry, oldDataVersion, type, desc);
 			}
@@ -102,13 +100,13 @@ public class NbtAudioUtil
 		}
 	}
 
-	public static void processEachBundle(ItemStack stack, @Nonnull DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachBundle(ItemStack stack, @Nonnull RegistryAccess registry, int oldDataVersion,
 	                                     LocationType type, String desc)
 	{
 		processEachStacks(InventoryUtils.getBundleItems(stack), registry, oldDataVersion, type, desc);
 	}
 
-	public static void processEachContainer(ItemStack stack, @Nonnull DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachContainer(ItemStack stack, @Nonnull RegistryAccess registry, int oldDataVersion,
 	                                        LocationType type, String desc)
 	{
 		processEachStacks(InventoryUtils.getStoredItems(stack), registry, oldDataVersion, type, desc);
@@ -119,19 +117,19 @@ public class NbtAudioUtil
 		AudioFileList files = new AudioFileList();
 		LocationsList locations = new LocationsList();
 
-		if (!stack.isEmpty() && stack.contains(DataComponentTypes.CUSTOM_DATA))
+		if (!stack.isEmpty() && stack.has(DataComponents.CUSTOM_DATA))
 		{
-			NbtComponent comp = stack.get(DataComponentTypes.CUSTOM_DATA);
+			CustomData comp = stack.get(DataComponents.CUSTOM_DATA);
 
 			if (comp != null)
 			{
-				NbtCompound nbt = comp.copyNbt();
+				CompoundTag nbt = comp.copyTag();
 
-                String lore = stack.getName().getString();
+                String lore = stack.getHoverName().getString();
 
-                if (stack.contains(DataComponentTypes.LORE))
+                if (stack.has(DataComponents.LORE))
                 {
-                    LoreComponent loreComp = stack.getOrDefault(DataComponentTypes.LORE, LoreComponent.DEFAULT);
+                    ItemLore loreComp = stack.getOrDefault(DataComponents.LORE, ItemLore.EMPTY);
 
                     if (loreComp != null && !loreComp.lines().isEmpty())
                     {
@@ -143,13 +141,13 @@ public class NbtAudioUtil
 
 				if (nbt.contains(CUSTOM_SOUND_RANDOM))
                 {
-                    NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
+                    ListTag uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asList().orElse(null);
 
 					if (uuids != null)
 					{
-						for (NbtElement element : uuids)
+						for (Tag element : uuids)
 						{
-							Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
+							UUIDUtil.CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
 											(uuid) -> {
 												files.add(new AudioFile(uuid.toString(), lore2));
 												locations.add(new AudioDataLocation(uuid.toString(), type, desc));
@@ -160,7 +158,7 @@ public class NbtAudioUtil
                 }
                 else if (nbt.contains(CUSTOM_SOUND))
 				{
-					nbt.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
+					nbt.read(CUSTOM_SOUND, UUIDUtil.CODEC).ifPresent(
 							(uuid) -> {
 								files.add(new AudioFile(uuid.toString(), lore2));
 								locations.add(new AudioDataLocation(uuid.toString(), type, desc));
@@ -173,7 +171,7 @@ public class NbtAudioUtil
 		return Pair.of(files, locations);
 	}
 
-	public static void processEachSkull(NbtCompound nbt, @Nonnull DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachSkull(CompoundTag nbt, @Nonnull RegistryAccess registry, int oldDataVersion,
 	                                    LocationType type, String desc)
 	{
 		AudioFileList files = new AudioFileList();
@@ -181,24 +179,24 @@ public class NbtAudioUtil
 
 		if (nbt.contains(NbtKeys.COMPONENTS))
 		{
-			NbtCompound comp = nbt.getCompoundOrEmpty(NbtKeys.COMPONENTS);
-			NbtCompound data = null;
+			CompoundTag comp = nbt.getCompoundOrEmpty(NbtKeys.COMPONENTS);
+			CompoundTag data = null;
 			String lore = null;
 			String profile = null;
-            Text itemName = null;
-            Text customName = null;
+            Component itemName = null;
+            Component customName = null;
 
 			if (!comp.isEmpty())
             {
-                for (String key : comp.getKeys())
+                for (String key : comp.keySet())
                 {
                     switch (key)
                     {
                         case "minecraft:custom_data", "custom_data" ->
-                                data = comp.get(key, NbtComponent.CODEC).orElse(NbtComponent.DEFAULT).copyNbt();
+                                data = comp.read(key, CustomData.CODEC).orElse(CustomData.EMPTY).copyTag();
                         case "minecraft:lore", "lore" ->
                         {
-                            LoreComponent loreComp = comp.get(key, LoreComponent.CODEC).orElse(LoreComponent.DEFAULT);
+                            ItemLore loreComp = comp.read(key, ItemLore.CODEC).orElse(ItemLore.EMPTY);
 
                             if (!loreComp.lines().isEmpty())
                             {
@@ -207,19 +205,19 @@ public class NbtAudioUtil
                         }
                         case "minecraft:profile", "profile" ->
                         {
-                            ProfileComponent profileComp = comp.get(key, ProfileComponent.CODEC).orElse(null);
+                            ResolvableProfile profileComp = comp.read(key, ResolvableProfile.CODEC).orElse(null);
 
                             if (profileComp != null)
                             {
-								GameProfile gameProfile = profileComp.getGameProfile();
-								Optional<String> optName = profileComp.getName();
+								GameProfile gameProfile = profileComp.partialProfile();
+								Optional<String> optName = profileComp.name();
 								AtomicReference<String> name = new AtomicReference<>();
 								optName.ifPresentOrElse(name::set, () -> name.set(gameProfile.name()));
                                 profile = name.get();
                             }
                         }
-                        case "minecraft:item_name", "item_name" -> itemName = comp.get(key, TextCodecs.CODEC).orElse(null);
-                        case "minecraft:custom_name", "custom_name" -> customName = comp.get(key, TextCodecs.CODEC).orElse(null);
+                        case "minecraft:item_name", "item_name" -> itemName = comp.read(key, ComponentSerialization.CODEC).orElse(null);
+                        case "minecraft:custom_name", "custom_name" -> customName = comp.read(key, ComponentSerialization.CODEC).orElse(null);
                     }
                 }
             }
@@ -227,12 +225,12 @@ public class NbtAudioUtil
             // It might not always be listed under the "components" tag
             if (nbt.contains(NbtKeys.PROFILE))
             {
-                ProfileComponent profileComp = nbt.get(NbtKeys.PROFILE, ProfileComponent.CODEC).orElse(null);
+                ResolvableProfile profileComp = nbt.read(NbtKeys.PROFILE, ResolvableProfile.CODEC).orElse(null);
 
                 if (profileComp != null)
                 {
-					GameProfile gameProfile = profileComp.getGameProfile();
-					Optional<String> optName = profileComp.getName();
+					GameProfile gameProfile = profileComp.partialProfile();
+					Optional<String> optName = profileComp.name();
 					AtomicReference<String> name = new AtomicReference<>();
 					optName.ifPresentOrElse(name::set, () -> name.set(gameProfile.name()));
 					profile = name.get();
@@ -277,7 +275,7 @@ public class NbtAudioUtil
 
             if (nbt.contains(CUSTOM_SOUND))
             {
-                nbt.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
+                nbt.read(CUSTOM_SOUND, UUIDUtil.CODEC).ifPresent(
                         (uuid) ->
                         {
                             files.add(new AudioFile(uuid.toString(), lore2));
@@ -286,13 +284,13 @@ public class NbtAudioUtil
             }
             else if (nbt.contains(CUSTOM_SOUND_RANDOM))
             {
-                NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
+                ListTag uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asList().orElse(null);
 
                 if (uuids != null)
                 {
-                    for (NbtElement element : uuids)
+                    for (Tag element : uuids)
                     {
-                        Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
+                        UUIDUtil.CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
                                 (uuid) -> {
                                     files.add(new AudioFile(uuid.toString(), lore2));
                                     locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));
@@ -305,7 +303,7 @@ public class NbtAudioUtil
             {
                 if (data.contains(CUSTOM_SOUND))
                 {
-                    data.get(CUSTOM_SOUND, Uuids.INT_STREAM_CODEC).ifPresent(
+                    data.read(CUSTOM_SOUND, UUIDUtil.CODEC).ifPresent(
                             (uuid) ->
                             {
                                 files.add(new AudioFile(uuid.toString(), lore2));
@@ -314,13 +312,13 @@ public class NbtAudioUtil
                 }
                 else if (data.contains(CUSTOM_SOUND_RANDOM))
                 {
-                    NbtList uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asNbtList().orElse(null);
+                    ListTag uuids = Objects.requireNonNull(nbt.get(CUSTOM_SOUND_RANDOM)).asList().orElse(null);
 
                     if (uuids != null)
                     {
-                        for (NbtElement element : uuids)
+                        for (Tag element : uuids)
                         {
-                            Uuids.INT_STREAM_CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
+                            UUIDUtil.CODEC.parse(NbtOps.INSTANCE, element).resultOrPartial().ifPresent(
                                     (uuid) -> {
                                         files.add(new AudioFile(uuid.toString(), lore2));
                                         locations.add(new AudioDataLocation(uuid.toString(), type, adjDesc));

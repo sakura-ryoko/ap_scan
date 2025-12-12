@@ -1,7 +1,8 @@
-accessWidener v1 named
-accessible class net/minecraft/world/updater/WorldUpdater$ChunkPosKeyedStorageUpdate
-accessible class net/minecraft/world/updater/WorldUpdater$EntitiesUpdate
-accessible class net/minecraft/world/updater/WorldUpdater$RegionUpdate
-accessible class net/minecraft/world/updater/WorldUpdater$Update
-accessible class net/minecraft/world/updater/WorldUpdater$Region
-accessible class net/minecraft/world/storage/ChunkCompressionFormat$Wrapper
+accessWidener v2 named
+accessible class net/minecraft/world/level/chunk/storage/RegionFileVersion$StreamWrapper
+accessible class net/minecraft/util/worldupdate/WorldUpgrader$AbstractUpgrader
+accessible class net/minecraft/util/worldupdate/WorldUpgrader$ChunkUpgrader
+accessible class net/minecraft/util/worldupdate/WorldUpgrader$EntityUpgrader
+accessible class net/minecraft/util/worldupdate/WorldUpgrader$PoiUpgrader
+accessible class net/minecraft/util/worldupdate/WorldUpgrader$DimensionToUpgrade
+accessible class net/minecraft/util/worldupdate/WorldUpgrader$SimpleRegionStorageUpgrader

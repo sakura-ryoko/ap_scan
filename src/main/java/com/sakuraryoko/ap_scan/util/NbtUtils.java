@@ -20,13 +20,13 @@ import com.sakuraryoko.ap_scan.ApScan;
 public class NbtUtils
 {
 	@Nullable
-	public static NbtCompound readNbtFromFileAsPath(@Nonnull Path file)
+	public static CompoundTag readNbtFromFileAsPath(@Nonnull Path file)
 	{
-		return readNbtFromFileAsPath(file, NbtSizeTracker.ofUnlimitedBytes());
+		return readNbtFromFileAsPath(file, NbtAccounter.unlimitedHeap());
 	}
 
 	@Nullable
-	public static NbtCompound readNbtFromFileAsPath(@Nonnull Path file, NbtSizeTracker tracker)
+	public static CompoundTag readNbtFromFileAsPath(@Nonnull Path file, NbtAccounter tracker)
 	{
 		if (!Files.exists(file) || !Files.isReadable(file))
 		{
@@ -48,7 +48,7 @@ public class NbtUtils
 	/**
 	 * Write the compound tag, gzipped, to the output stream.
 	 */
-	public static void writeCompressed(@Nonnull NbtCompound tag, @Nonnull OutputStream outputStream)
+	public static void writeCompressed(@Nonnull CompoundTag tag, @Nonnull OutputStream outputStream)
     {
 		try
 		{
@@ -60,7 +60,7 @@ public class NbtUtils
 		}
 	}
 
-	public static void writeCompressed(@Nonnull NbtCompound tag, @Nonnull Path file)
+	public static void writeCompressed(@Nonnull CompoundTag tag, @Nonnull Path file)
 	{
 		try
 		{
@@ -79,9 +79,9 @@ public class NbtUtils
 	 * @param mapCodec ()
 	 * @return ()
 	 */
-	public static <T> Optional<T> readFlatMap(@Nonnull NbtCompound nbt, MapCodec<T> mapCodec)
+	public static <T> Optional<T> readFlatMap(@Nonnull CompoundTag nbt, MapCodec<T> mapCodec)
 	{
-		DynamicOps<NbtElement> ops = NbtOps.INSTANCE;
+		DynamicOps<Tag> ops = NbtOps.INSTANCE;
 
 		return switch (ops.getMap(nbt).flatMap(map -> mapCodec.decode(ops, map)))
 		{
@@ -98,15 +98,15 @@ public class NbtUtils
 	 * @param value ()
 	 * @return ()
 	 */
-	public static <T> NbtCompound writeFlatMap(MapCodec<T> mapCodec, T value)
+	public static <T> CompoundTag writeFlatMap(MapCodec<T> mapCodec, T value)
 	{
-		DynamicOps<NbtElement> ops = NbtOps.INSTANCE;
-		NbtCompound nbt = new NbtCompound();
+		DynamicOps<Tag> ops = NbtOps.INSTANCE;
+		CompoundTag nbt = new CompoundTag();
 
 		switch (mapCodec.encoder().encodeStart(ops, value))
 		{
-			case DataResult.Success<NbtElement> result -> nbt.copyFrom((NbtCompound) result.value());
-			case DataResult.Error<NbtElement> error -> error.partialValue().ifPresent(partial -> nbt.copyFrom((NbtCompound) partial));
+			case DataResult.Success<Tag> result -> nbt.merge((CompoundTag) result.value());
+			case DataResult.Error<Tag> error -> error.partialValue().ifPresent(partial -> nbt.merge((CompoundTag) partial));
 		}
 
 		return nbt;

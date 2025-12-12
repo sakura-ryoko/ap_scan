@@ -5,14 +5,12 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.UUID;
-
-import net.minecraft.inventory.Inventory;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.world.Container;
+import net.minecraft.world.phys.Vec3;
 import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.audio.LocationType;
 import com.sakuraryoko.ap_scan.audio.NbtAudioUtil;
@@ -47,22 +45,22 @@ public class PlayerData
 
 	public static void processEachPlayerDat(Path file)
 	{
-		NbtCompound nbt = NbtUtils.readNbtFromFileAsPath(file);
+		CompoundTag nbt = NbtUtils.readNbtFromFileAsPath(file);
 
 		if (nbt == null || nbt.isEmpty())
 		{
 			return;
 		}
 
-		DynamicRegistryManager registry = DataManager.getInstance().getRegistry();
-		int oldDataVersion = nbt.getInt("DataVersion", -1);
+		RegistryAccess registry = DataManager.getInstance().getRegistry();
+		int oldDataVersion = nbt.getIntOr("DataVersion", -1);
 		boolean shouldFix = oldDataVersion < DataFixerUtils.CURRENT_SCHEMA;
-		NbtCompound fixedNbt = shouldFix ? DataFixerUtils.fixPlayer(nbt, oldDataVersion) : nbt;
+		CompoundTag fixedNbt = shouldFix ? DataFixerUtils.fixPlayer(nbt, oldDataVersion) : nbt;
 
-		NbtList enderItems = fixedNbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
-		NbtList inventory = fixedNbt.getListOrEmpty(NbtKeys.INVENTORY);
-		final UUID uuid = fixedNbt.get(NbtKeys.UUID, Uuids.INT_STREAM_CODEC).orElse(UUID.fromString(FileNameUtils.getFileNameWithoutExtension(file.getFileName().toString())));
-		final Vec3d pos = fixedNbt.get(NbtKeys.POS, Vec3d.CODEC).orElse(Vec3d.ZERO);
+		ListTag enderItems = fixedNbt.getListOrEmpty(NbtKeys.ENDER_ITEMS);
+		ListTag inventory = fixedNbt.getListOrEmpty(NbtKeys.INVENTORY);
+		final UUID uuid = fixedNbt.read(NbtKeys.UUID, UUIDUtil.CODEC).orElse(UUID.fromString(FileNameUtils.getFileNameWithoutExtension(file.getFileName().toString())));
+		final Vec3 pos = fixedNbt.read(NbtKeys.POS, Vec3.CODEC).orElse(Vec3.ZERO);
 		final String desc = getPlayerDesc(uuid, pos);
 
 //		System.out.printf("PLAYER: nbt [%s]\n", fixedNbt.toString());
@@ -96,7 +94,7 @@ public class PlayerData
 		}
 	}
 
-	public static String getPlayerDesc(UUID uuid, Vec3d pos)
+	public static String getPlayerDesc(UUID uuid, Vec3 pos)
 	{
 		return "Player[" +
 				"{UUID="+uuid.toString()+"}" +
@@ -104,7 +102,7 @@ public class PlayerData
 				"]";
 	}
 
-	public static void processEachInventory(Inventory inv, DynamicRegistryManager registry, int oldDataVersion,
+	public static void processEachInventory(Container inv, RegistryAccess registry, int oldDataVersion,
 	                                        LocationType type, String desc)
 	{
 		if (inv == null || inv.isEmpty())

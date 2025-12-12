@@ -1,37 +1,35 @@
 package com.sakuraryoko.ap_scan.data;
 
 import java.util.UUID;
-
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.phys.Vec3;
 import com.sakuraryoko.ap_scan.audio.LocationType;
 import com.sakuraryoko.ap_scan.audio.NbtAudioUtil;
 import com.sakuraryoko.ap_scan.util.*;
 
 public class ChunkData
 {
-	public static void processChunkData(NbtCompound nbt, int oldDataVersion)
+	public static void processChunkData(CompoundTag nbt, int oldDataVersion)
 	{
 		if (nbt.getString("Status").isEmpty())
 		{
 			return;
 		}
 
-		DynamicRegistryManager registry = DataManager.getInstance().getRegistry();
+		RegistryAccess registry = DataManager.getInstance().getRegistry();
 		processChunkEntities(nbt.getListOrEmpty("entities"), registry, oldDataVersion);
 		processChunkTileEntities(nbt.getListOrEmpty("block_entities"), registry, oldDataVersion);
 	}
 
-	private static void processChunkEntities(NbtList list, DynamicRegistryManager registry, int oldDataVersion)
+	private static void processChunkEntities(ListTag list, RegistryAccess registry, int oldDataVersion)
 	{
 		for (int i = 0; i < list.size(); i++)
 		{
@@ -39,7 +37,7 @@ public class ChunkData
 		}
 	}
 
-	private static void processChunkTileEntities(NbtList list, DynamicRegistryManager registry, int oldDataVersion)
+	private static void processChunkTileEntities(ListTag list, RegistryAccess registry, int oldDataVersion)
 	{
 		for (int i = 0; i < list.size(); i++)
 		{
@@ -47,32 +45,32 @@ public class ChunkData
 		}
 	}
 
-	private static void processChunkEntityEach(NbtCompound nbt, DynamicRegistryManager registry, int oldDataVersion)
+	private static void processChunkEntityEach(CompoundTag nbt, RegistryAccess registry, int oldDataVersion)
 	{
-		String id = nbt.getString("id", "");
-		boolean shouldFix = nbt.getInt("DataVersion", -1) < DataFixerUtils.CURRENT_SCHEMA;
+		String id = nbt.getStringOr("id", "");
+		boolean shouldFix = nbt.getIntOr("DataVersion", -1) < DataFixerUtils.CURRENT_SCHEMA;
 
 		// Filter out all the unwanted Entity Types
 		if (IDList.ENTITY_ID_LIST.contains(id))
 		{
-			NbtCompound fixedNbt = shouldFix ? DataFixerUtils.fixEntity(nbt, oldDataVersion) : nbt;
+			CompoundTag fixedNbt = shouldFix ? DataFixerUtils.fixEntity(nbt, oldDataVersion) : nbt;
 
 			if (InventoryUtils.hasNbtItems(fixedNbt))
 			{
-				id = nbt.getString("id", "");
+				id = nbt.getStringOr("id", "");
 				Identifier identifier = Identifier.tryParse(id);
 				EntityType<?> entityType = NbtEntityUtils.getEntityTypeFromNbt(fixedNbt);
-				final Text defName = entityType != null ? entityType.getName() : (identifier != null ? Text.of(identifier.getPath()) : Text.of(id));
-				final Text customName = fixedNbt.get(NbtKeys.CUSTOM_NAME, TextCodecs.CODEC).orElse(defName);
-				final UUID uuid = fixedNbt.get(NbtKeys.UUID, Uuids.INT_STREAM_CODEC).orElse(Uuids.getOfflinePlayerUuid(customName.getString()));
-				final Vec3d pos = fixedNbt.get(NbtKeys.POS, Vec3d.CODEC).orElse(Vec3d.ZERO);
+				final Component defName = entityType != null ? entityType.getDescription() : (identifier != null ? Component.nullToEmpty(identifier.getPath()) : Component.nullToEmpty(id));
+				final Component customName = fixedNbt.read(NbtKeys.CUSTOM_NAME, ComponentSerialization.CODEC).orElse(defName);
+				final UUID uuid = fixedNbt.read(NbtKeys.UUID, UUIDUtil.CODEC).orElse(UUIDUtil.createOfflinePlayerUUID(customName.getString()));
+				final Vec3 pos = fixedNbt.read(NbtKeys.POS, Vec3.CODEC).orElse(Vec3.ZERO);
 
 				NbtAudioUtil.processEachNbt(fixedNbt, registry, oldDataVersion, LocationType.ENTITY, EntityData.getEntityDesc(defName, customName, uuid, pos));
 			}
 		}
 	}
 
-	public static String getTileEntityDesc(Text defName, Text customName, BlockPos pos)
+	public static String getTileEntityDesc(Component defName, Component customName, BlockPos pos)
 	{
 		if (customName.equals(defName))
 		{
@@ -89,28 +87,28 @@ public class ChunkData
 				"]";
 	}
 
-	private static void processChunkTileEntityEach(NbtCompound nbt, DynamicRegistryManager registry, int oldDataVersion)
+	private static void processChunkTileEntityEach(CompoundTag nbt, RegistryAccess registry, int oldDataVersion)
 	{
-		String id = nbt.getString("id", "");
-		boolean shouldFix = nbt.getInt("DataVersion", -1) < DataFixerUtils.CURRENT_SCHEMA;
+		String id = nbt.getStringOr("id", "");
+		boolean shouldFix = nbt.getIntOr("DataVersion", -1) < DataFixerUtils.CURRENT_SCHEMA;
 
 		// Filter out all the unwanted Tile Entity Types
 		if (IDList.TILE_ID_LIST.contains(id.toLowerCase()))
 		{
-			NbtCompound fixedNbt = shouldFix ? DataFixerUtils.fixTileEntity(nbt, oldDataVersion) : nbt;
+			CompoundTag fixedNbt = shouldFix ? DataFixerUtils.fixTileEntity(nbt, oldDataVersion) : nbt;
 
 //			System.out.printf("[TE] (MATCHED) nbt [%s]\n", fixedNbt.toString());
-			id = nbt.getString("id", "");
+			id = nbt.getStringOr("id", "");
 			Identifier identifier = Identifier.tryParse(id);
 			BlockPos pos = NbtBlockUtils.readBlockPos(fixedNbt);
 
 			if (pos == null)
 			{
-				pos = BlockPos.ORIGIN;
+				pos = BlockPos.ZERO;
 			}
 
-			final Text defName = (identifier != null ? Text.of(identifier.getPath()) : Text.of(id));
-			Text customName = NbtBlockUtils.getCustomNameFromNbt(fixedNbt, registry, NbtKeys.SKULL_NAME);
+			final Component defName = (identifier != null ? Component.nullToEmpty(identifier.getPath()) : Component.nullToEmpty(id));
+			Component customName = NbtBlockUtils.getCustomNameFromNbt(fixedNbt, registry, NbtKeys.SKULL_NAME);
 
 			if (customName == null)
 			{

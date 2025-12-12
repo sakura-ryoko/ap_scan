@@ -1,17 +1,15 @@
 package com.sakuraryoko.ap_scan.data;
 
 import java.util.UUID;
-
-import net.minecraft.entity.EntityType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.registry.DynamicRegistryManager;
-import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Uuids;
-import net.minecraft.util.math.Vec3d;
-
+import net.minecraft.core.RegistryAccess;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.phys.Vec3;
 import com.sakuraryoko.ap_scan.audio.LocationType;
 import com.sakuraryoko.ap_scan.audio.NbtAudioUtil;
 import com.sakuraryoko.ap_scan.util.DataFixerUtils;
@@ -21,10 +19,10 @@ import com.sakuraryoko.ap_scan.util.NbtKeys;
 
 public class EntityData
 {
-	public static void processEntityData(NbtCompound nbt, int oldDataVersion)
+	public static void processEntityData(CompoundTag nbt, int oldDataVersion)
 	{
-		NbtList list = nbt.getListOrEmpty("Entities");
-		DynamicRegistryManager registry = DataManager.getInstance().getRegistry();
+		ListTag list = nbt.getListOrEmpty("Entities");
+		RegistryAccess registry = DataManager.getInstance().getRegistry();
 
 		for (int i = 0; i < list.size(); i++)
 		{
@@ -32,7 +30,7 @@ public class EntityData
 		}
 	}
 
-	public static String getEntityDesc(Text defName, Text customName, UUID uuid, Vec3d pos)
+	public static String getEntityDesc(Component defName, Component customName, UUID uuid, Vec3 pos)
 	{
 		return "Entity[" +
 				"{DefName="+defName.getString()+"}" +
@@ -42,24 +40,24 @@ public class EntityData
 				"]";
 	}
 
-	private static void processEntityDataEach(NbtCompound nbt, DynamicRegistryManager registry, int oldDataVersion)
+	private static void processEntityDataEach(CompoundTag nbt, RegistryAccess registry, int oldDataVersion)
 	{
-		String id = nbt.getString("id", "");
-		boolean shouldFix = nbt.getInt("DataVersion", -1) < DataFixerUtils.CURRENT_SCHEMA;
+		String id = nbt.getStringOr("id", "");
+		boolean shouldFix = nbt.getIntOr("DataVersion", -1) < DataFixerUtils.CURRENT_SCHEMA;
 
 		// Filter out all the unwanted Entity Types
 		if (IDList.ENTITY_ID_LIST.contains(id))
 		{
-			NbtCompound fixedNbt = shouldFix ? DataFixerUtils.fixEntity(nbt, oldDataVersion) : nbt;
+			CompoundTag fixedNbt = shouldFix ? DataFixerUtils.fixEntity(nbt, oldDataVersion) : nbt;
 
 			if (InventoryUtils.hasNbtItems(fixedNbt))
 			{
 				Identifier identifier = Identifier.tryParse(id);
 				EntityType<?> entityType = NbtEntityUtils.getEntityTypeFromNbt(fixedNbt);
-				final Text defName = entityType != null ? entityType.getName() : (identifier != null ? Text.of(identifier.getPath()) : Text.of(id));
-				final Text customName = fixedNbt.get(NbtKeys.CUSTOM_NAME, TextCodecs.CODEC).orElse(defName);
-				final UUID uuid = fixedNbt.get(NbtKeys.UUID, Uuids.INT_STREAM_CODEC).orElse(Uuids.getOfflinePlayerUuid(customName.getString()));
-				final Vec3d pos = fixedNbt.get(NbtKeys.POS, Vec3d.CODEC).orElse(Vec3d.ZERO);
+				final Component defName = entityType != null ? entityType.getDescription() : (identifier != null ? Component.nullToEmpty(identifier.getPath()) : Component.nullToEmpty(id));
+				final Component customName = fixedNbt.read(NbtKeys.CUSTOM_NAME, ComponentSerialization.CODEC).orElse(defName);
+				final UUID uuid = fixedNbt.read(NbtKeys.UUID, UUIDUtil.CODEC).orElse(UUIDUtil.createOfflinePlayerUUID(customName.getString()));
+				final Vec3 pos = fixedNbt.read(NbtKeys.POS, Vec3.CODEC).orElse(Vec3.ZERO);
 
 				NbtAudioUtil.processEachNbt(fixedNbt, registry, oldDataVersion, LocationType.ENTITY, getEntityDesc(defName, customName, uuid, pos));
 			}

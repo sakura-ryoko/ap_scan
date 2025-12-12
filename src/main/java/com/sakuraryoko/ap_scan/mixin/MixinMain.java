@@ -7,10 +7,10 @@ import java.util.function.BooleanSupplier;
 import org.slf4j.Logger;
 
 import com.mojang.datafixers.DataFixer;
-import net.minecraft.registry.DynamicRegistryManager;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.Main;
-import net.minecraft.world.SaveProperties;
-import net.minecraft.world.level.storage.LevelStorage;
+import net.minecraft.world.level.storage.LevelStorageSource;
+import net.minecraft.world.level.storage.WorldData;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -177,29 +177,29 @@ public class MixinMain
 
 	@Redirect(method = "main",
 			  at = @At(value = "INVOKE",
-					   target = "Lnet/minecraft/world/level/storage/LevelStorage;create(Ljava/nio/file/Path;)Lnet/minecraft/world/level/storage/LevelStorage;"))
-	private static LevelStorage ap_scan$onCaptureRootPath(Path path)
+					   target = "Lnet/minecraft/world/level/storage/LevelStorageSource;createDefault(Ljava/nio/file/Path;)Lnet/minecraft/world/level/storage/LevelStorageSource;"))
+	private static LevelStorageSource ap_scan$onCaptureRootPath(Path path)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
 			DataManager.getInstance().updateRootPath(path, true);
 
 		}
-		return LevelStorage.create(path);
+		return LevelStorageSource.createDefault(path);
 	}
 
 	@Redirect(method = "main",
 			  at = @At(value = "INVOKE",
-					 target = "Lnet/minecraft/world/level/storage/LevelStorage;createSession(Ljava/lang/String;)Lnet/minecraft/world/level/storage/LevelStorage$Session;"))
-	private static LevelStorage.Session ap_scan$onCaptureWorldPath(LevelStorage instance, String directoryName)
+					 target = "Lnet/minecraft/world/level/storage/LevelStorageSource;validateAndCreateAccess(Ljava/lang/String;)Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;"))
+	private static LevelStorageSource.LevelStorageAccess ap_scan$onCaptureWorldPath(LevelStorageSource instance, String directoryName)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
 			try
 			{
-				DataManager.getInstance().updateWorldPath(instance.getSavesDirectory().resolve(directoryName), true);
+				DataManager.getInstance().updateWorldPath(instance.getBaseDir().resolve(directoryName), true);
 				ProcessEvents.onCaptureWorldPath();
-				return instance.createSession(directoryName);
+				return instance.validateAndCreateAccess(directoryName);
 			}
 			catch (Exception err)
 			{
@@ -210,7 +210,7 @@ public class MixinMain
 
 		try
 		{
-			return instance.createSession(directoryName);
+			return instance.validateAndCreateAccess(directoryName);
 		}
 		catch (Exception err)
 		{
@@ -223,7 +223,7 @@ public class MixinMain
 
 	@Inject(method = "main",
 			at = @At(value = "INVOKE",
-					 target = "Lnet/minecraft/world/level/storage/LevelStorage$Session;backupLevelDataFile(Lnet/minecraft/registry/DynamicRegistryManager;Lnet/minecraft/world/SaveProperties;)V"), cancellable = true)
+					 target = "Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;saveDataTag(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/level/storage/WorldData;)V"), cancellable = true)
 	private static void ap_scan$onLaunchCancel(String[] args, CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldRunReports())
@@ -242,13 +242,13 @@ public class MixinMain
 		}
 	}
 
-	@Inject(method = "forceUpgradeWorld", at = @At("HEAD"))
-	private static void ap_scan$onCaptureImmutable(LevelStorage.Session session,
-												   SaveProperties saveProperties,
+	@Inject(method = "forceUpgrade", at = @At("HEAD"))
+	private static void ap_scan$onCaptureImmutable(LevelStorageSource.LevelStorageAccess session,
+												   WorldData saveProperties,
 												   DataFixer dataFixer,
 												   boolean eraseCache,
 												   BooleanSupplier continueCheck,
-												   DynamicRegistryManager registries,
+												   RegistryAccess registries,
 												   boolean recreateRegionFiles,
 												   CallbackInfo ci)
 	{

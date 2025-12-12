@@ -3,12 +3,12 @@ package com.sakuraryoko.ap_scan.mixin;
 import com.llamalad7.mixinextras.sugar.Local;
 
 import com.sakuraryoko.ap_scan.data.DataManager;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.World;
-import net.minecraft.world.storage.VersionedChunkStorage;
-import net.minecraft.world.updater.WorldUpdater;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.util.worldupdate.WorldUpgrader;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.storage.SimpleRegionStorage;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Constant;
@@ -18,23 +18,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 import com.sakuraryoko.ap_scan.data.ChunkData;
 
-@Mixin(WorldUpdater.RegionUpdate.class)
+@Mixin(WorldUpgrader.ChunkUpgrader.class)
 public class MixinWorldUpdater_RegionUpdate
 {
-	@Inject(method = "update(Lnet/minecraft/world/storage/VersionedChunkStorage;Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/registry/RegistryKey;)Z",
+	@Inject(method = "tryProcessOnePosition(Lnet/minecraft/world/level/chunk/storage/SimpleRegionStorage;Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/resources/ResourceKey;)Z",
 			at = @At(value = "INVOKE",
-					 target = "Lnet/minecraft/world/storage/VersionedChunkStorage;updateChunkNbt(Lnet/minecraft/nbt/NbtCompound;ILnet/minecraft/nbt/NbtCompound;)Lnet/minecraft/nbt/NbtCompound;"))
-	private void ap_scan$onChunkUpdate(VersionedChunkStorage versionedChunkStorage,
+					 target = "Lnet/minecraft/world/level/chunk/storage/SimpleRegionStorage;upgradeChunkTag(Lnet/minecraft/nbt/CompoundTag;ILnet/minecraft/nbt/CompoundTag;)Lnet/minecraft/nbt/CompoundTag;"))
+	private void ap_scan$onChunkUpdate(SimpleRegionStorage versionedChunkStorage,
 									   ChunkPos chunkPos,
-									   RegistryKey<World> registryKey,
+									   ResourceKey<Level> registryKey,
 									   CallbackInfoReturnable<Boolean> cir,
-									   @Local NbtCompound nbtCompound,
-									   @Local NbtCompound nbtCompound2)
+									   @Local CompoundTag nbtCompound,
+									   @Local CompoundTag nbtCompound2)
 	{
-		ChunkData.processChunkData(nbtCompound2, nbtCompound.getInt("DataVersion", -1));
+		ChunkData.processChunkData(nbtCompound2, nbtCompound.getIntOr("DataVersion", -1));
 	}
 
-    @ModifyConstant(method = "update(Lnet/minecraft/world/storage/VersionedChunkStorage;Lnet/minecraft/util/math/ChunkPos;Lnet/minecraft/registry/RegistryKey;)Z",
+    @ModifyConstant(method = "tryProcessOnePosition(Lnet/minecraft/world/level/chunk/storage/SimpleRegionStorage;Lnet/minecraft/world/level/ChunkPos;Lnet/minecraft/resources/ResourceKey;)Z",
                     constant = { @Constant(stringValue = "sections")})
     private String ap_scan$modifyLightmapPurge(String constant)
     {
