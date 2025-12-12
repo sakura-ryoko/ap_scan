@@ -243,7 +243,14 @@ public class MixinMain
 	}
 
 	@Inject(method = "forceUpgradeWorld", at = @At("HEAD"))
-	private static void ap_scan$onCaptureImmutable(LevelStorage.Session session, SaveProperties saveProperties, DataFixer dataFixer, boolean eraseCache, BooleanSupplier continueCheck, DynamicRegistryManager registries, boolean recreateRegionFiles, CallbackInfo ci)
+	private static void ap_scan$onCaptureImmutable(LevelStorage.Session session,
+												   SaveProperties saveProperties,
+												   DataFixer dataFixer,
+												   boolean eraseCache,
+												   BooleanSupplier continueCheck,
+												   DynamicRegistryManager registries,
+												   boolean recreateRegionFiles,
+												   CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{

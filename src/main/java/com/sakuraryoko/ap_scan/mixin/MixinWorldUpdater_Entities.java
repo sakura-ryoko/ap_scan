@@ -1,7 +1,7 @@
 package com.sakuraryoko.ap_scan.mixin;
 
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.world.storage.ChunkPosKeyedStorage;
+import net.minecraft.world.storage.VersionedChunkStorage;
 import net.minecraft.world.updater.WorldUpdater;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,7 +14,8 @@ import com.sakuraryoko.ap_scan.data.EntityData;
 public class MixinWorldUpdater_Entities
 {
 	@Inject(method = "updateNbt", at = @At("RETURN"))
-	private void ap_scan$onEntityUpdate(ChunkPosKeyedStorage storage, NbtCompound nbt, CallbackInfoReturnable<NbtCompound> cir)
+	private void ap_scan$onEntityUpdate(VersionedChunkStorage storage, NbtCompound nbt,
+										CallbackInfoReturnable<NbtCompound> cir)
 	{
 		EntityData.processEntityData(cir.getReturnValue(), nbt.getInt("DataVersion", -1));
 	}
