@@ -4,6 +4,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.math.Fraction;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
@@ -37,8 +38,8 @@ public class InventoryUtils
 
 		if (container != null)
 		{
-			Iterator<ItemStack> iter = container.nonEmptyStream().iterator();
-			NonNullList<ItemStack> items = NonNullList.createWithCapacity((int) container.nonEmptyStream().count());
+			Iterator<ItemStack> iter = container.nonEmptyItemCopyStream().iterator();
+			NonNullList<ItemStack> items = NonNullList.createWithCapacity((int) container.nonEmptyItemCopyStream().count());
 			int i = 0;
 
 			// Using 'container.copyTo(items)' will break Litematica's Material List
@@ -70,7 +71,7 @@ public class InventoryUtils
 		// Using itemContainer.copyTo() does not preserve empty stacks.
 		if (itemContainer != null)
 		{
-			long defSlotCount = itemContainer.stream().count();
+			long defSlotCount = itemContainer.allItemsCopyStream().count();
 
 			// ContainerComponent.MAX_SLOTS = 256
 			if (slotCount < 1)
@@ -83,7 +84,7 @@ public class InventoryUtils
 			}
 
 			NonNullList<ItemStack> items = NonNullList.createWithCapacity(slotCount);
-			Iterator<ItemStack> iter = itemContainer.stream().iterator();
+			Iterator<ItemStack> iter = itemContainer.allItemsCopyStream().iterator();
 
 			for (int i = 0; i < slotCount; i++)
 			{
@@ -139,7 +140,7 @@ public class InventoryUtils
 
 		if (bundleContainer != null)
 		{
-			return bundleContainer.weight();
+			return bundleContainer.weight().getOrThrow();
 		}
 
 		return Fraction.ZERO;
@@ -321,17 +322,18 @@ public class InventoryUtils
 				return null;
 			}
 
-			return nbtInv.toInventory(slotCount);
+			return nbtInv.sorted().toInventory(slotCount);
 		}
 		else if (nbt.contains(NbtKeys.INVENTORY))
 		{
 			String id = nbt.getStringOr(NbtKeys.ID, "");
 			boolean isPlayer = Objects.equals(id, "minecraft:player");
+			ListTag list = nbt.getListOrEmpty(NbtKeys.INVENTORY);
+			boolean noSlotId = list.isEmpty() ? !isPlayer : !nbtInventoryHasSlots(list);
 
 			// Entities use this (Piglin, Villager, a few others)
 			if (slotCount < 0)
 			{
-				ListTag list = nbt.getListOrEmpty(NbtKeys.INVENTORY);
 				// Doesn't use slots
 				slotCount = list.size();
 			}
@@ -339,14 +341,14 @@ public class InventoryUtils
 			slotCount = NbtInventory.getAdjustedSize(slotCount);
 
 			// "Inventory" tags might not include Slot ID's, but a Player will.
-			NbtInventory nbtInv = NbtInventory.fromNbt(nbt, NbtKeys.INVENTORY, !isPlayer, registry);
+			NbtInventory nbtInv = NbtInventory.fromNbt(nbt, NbtKeys.INVENTORY, noSlotId, registry);
 
 			if (nbtInv == null || nbtInv.isEmpty())
 			{
 				return null;
 			}
 
-			return nbtInv.toInventory(slotCount);
+			return nbtInv.sorted().toInventory(slotCount);
 		}
 		else if (nbt.contains(NbtKeys.ENDER_ITEMS))
 		{
@@ -367,7 +369,7 @@ public class InventoryUtils
 				return null;
 			}
 
-			return nbtInv.toInventory(Math.max(slotCount, NbtInventory.DEFAULT_SIZE));
+			return nbtInv.sorted().toInventory(Math.max(slotCount, NbtInventory.DEFAULT_SIZE));
 		}
 		else if (nbt.contains(NbtKeys.ITEM))
 		{
@@ -407,6 +409,17 @@ public class InventoryUtils
 		}
 
 		return null;
+	}
+
+	private static boolean nbtInventoryHasSlots(@Nonnull ListTag list)
+	{
+		for (int i = 0; i < list.size(); i++)
+		{
+			CompoundTag entry = list.getCompoundOrEmpty(i);
+			if (entry.contains(NbtKeys.SLOT)) { return true; }
+		}
+
+		return false;
 	}
 
 	/**

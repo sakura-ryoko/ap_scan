@@ -1,14 +1,14 @@
 {
     "required": true,
     "package": "com.sakuraryoko.ap_scan.mixin",
-    "compatibilityLevel": "JAVA_21",
+    "compatibilityLevel": "JAVA_25",
     "mixins": [
         "IMixinNbtReadView",
         "IMixinNbtWriteView",
         "MixinChunkCompressionFormat",
         "MixinMain",
-        "MixinWorldUpdater_Entities",
-        "MixinWorldUpdater_RegionUpdate"
+        "MixinRegionStorageUpgrader",
+        "MixinWorldUpgrader"
     ],
     "injectors": {
         "defaultRequire": 1

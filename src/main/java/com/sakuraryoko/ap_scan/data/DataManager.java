@@ -119,7 +119,7 @@ public class DataManager
 		this.worldPath = dir;
 		this.audioPath = dir.resolve(AUDIO_PLAYER_DATA);
 		this.audioUnusedPath = dir.resolve(AUDIO_PLAYER_UNUSED);
-		this.playerDataPath = dir.resolve(LevelResource.PLAYER_DATA_DIR.getId());
+		this.playerDataPath = dir.resolve(LevelResource.PLAYER_DATA_DIR.id());
 	}
 
 	public void updateReportsPath(String dir)

@@ -45,7 +45,7 @@ public class PlayerData
 
 	public static void processEachPlayerDat(Path file)
 	{
-		CompoundTag nbt = NbtUtils.readNbtFromFileAsPath(file);
+		CompoundTag nbt = NbtUtils.readNbtFromFile(file);
 
 		if (nbt == null || nbt.isEmpty())
 		{

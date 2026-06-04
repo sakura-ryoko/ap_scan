@@ -10,7 +10,6 @@ import com.mojang.datafixers.DataFixer;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.server.Main;
 import net.minecraft.world.level.storage.LevelStorageSource;
-import net.minecraft.world.level.storage.WorldData;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -31,8 +30,9 @@ public class MixinMain
 	@Shadow @Final private static Logger LOGGER;
 	@Unique private static final String logPrefix = "("+Reference.MOD_ID+")";
 
-	@ModifyVariable(method = "main", at = @At("HEAD"), argsOnly = true)
-	private static String[] ap_scan$onLaunchServer(String[] value)
+	@ModifyVariable(method = "main", at = @At("HEAD"),
+					argsOnly = true, name = "args")
+	private static String[] ap_scan$onLaunchServer(String[] args)
 	{
 		boolean hasForceUpgrade = false;
 		boolean hasEraseCache = false;
@@ -44,9 +44,9 @@ public class MixinMain
 		boolean hasRelocateUnused = false;
         boolean hasDisableLightmapPrune = false;
 
-		for (int i = 0; i < value.length; i++)
+		for (int i = 0; i < args.length; i++)
 		{
-			String entry = value[i];
+			String entry = args[i];
 
 			if (entry.equalsIgnoreCase(DataManager.FORCE_UPGRADE_PARAM))
 			{
@@ -87,9 +87,9 @@ public class MixinMain
             }
 			else if (entry.equalsIgnoreCase(DataManager.REPORT_NAME_PARAM))
 			{
-				if (value.length > (i + 1))
+				if (args.length > (i + 1))
 				{
-					DataManager.getInstance().setReportName(value[++i]);
+					DataManager.getInstance().setReportName(args[++i]);
 				}
 				else
 				{
@@ -112,13 +112,13 @@ public class MixinMain
 				ProcessEvents.onPostArguments();
 			}
 
-			return value;
+			return args;
 		}
 		else
 		{
 			if (DataManager.getInstance().shouldRunReports())
 			{
-				List<String> list = new java.util.ArrayList<>(Arrays.stream(value).toList());
+				List<String> list = new java.util.ArrayList<>(Arrays.stream(args).toList());
 
 				if (DataManager.getInstance().shouldForceUpgrade())
 				{
@@ -170,7 +170,7 @@ public class MixinMain
 			}
 			else
 			{
-				return value;
+				return args;
 			}
 		}
 	}
@@ -223,7 +223,9 @@ public class MixinMain
 
 	@Inject(method = "main",
 			at = @At(value = "INVOKE",
-					 target = "Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;saveDataTag(Lnet/minecraft/core/RegistryAccess;Lnet/minecraft/world/level/storage/WorldData;)V"), cancellable = true)
+					 target = "Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;saveDataTag(Lnet/minecraft/world/level/storage/WorldData;)V"),
+			cancellable = true
+	)
 	private static void ap_scan$onLaunchCancel(String[] args, CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldRunReports())
@@ -243,18 +245,14 @@ public class MixinMain
 	}
 
 	@Inject(method = "forceUpgrade", at = @At("HEAD"))
-	private static void ap_scan$onCaptureImmutable(LevelStorageSource.LevelStorageAccess session,
-												   WorldData saveProperties,
-												   DataFixer dataFixer,
-												   boolean eraseCache,
-												   BooleanSupplier continueCheck,
-												   RegistryAccess registries,
-												   boolean recreateRegionFiles,
-												   CallbackInfo ci)
+	private static void ap_scan$onCaptureImmutable(LevelStorageSource.LevelStorageAccess storageSource,
+	                                               DataFixer fixerUpper, boolean eraseCache, BooleanSupplier isRunning,
+	                                               RegistryAccess registryAccess, boolean recreateRegionFiles,
+	                                               CallbackInfo ci)
 	{
 		if (DataManager.getInstance().shouldRunReports())
 		{
-			DataManager.getInstance().setRegistry(registries);
+			DataManager.getInstance().setRegistry(registryAccess);
 		}
 	}
 }

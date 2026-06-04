@@ -21,11 +21,11 @@ public class MixinChunkCompressionFormat
 	@Mutable @Shadow @Final private RegionFileVersion.StreamWrapper<OutputStream> outputWrapper;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
-	private <O> void ap_scan$increaseDeflateLevel9(int id, String name, RegionFileVersion.StreamWrapper<O> inputStreamWrapper, RegionFileVersion.StreamWrapper<O> outputStreamWrapper, CallbackInfo ci)
+	private <O> void ap_scan$increaseDeflateLevel9(int id, String optionName, RegionFileVersion.StreamWrapper<O> inputWrapper, RegionFileVersion.StreamWrapper<O> outputWrapper, CallbackInfo ci)
 	{
-		if (DataManager.getInstance().shouldAdjustDeflateLevel() && name != null)
+		if (DataManager.getInstance().shouldAdjustDeflateLevel() && optionName != null)
 		{
-			if (name.equalsIgnoreCase("deflate"))
+			if (optionName.equalsIgnoreCase("deflate"))
 			{
 				this.outputWrapper = stream -> new BufferedOutputStream(new DeflaterOutputStream(stream, new Deflater(9)));
 			}

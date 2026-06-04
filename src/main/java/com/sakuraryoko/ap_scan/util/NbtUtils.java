@@ -1,9 +1,12 @@
 package com.sakuraryoko.ap_scan.util;
 
-import java.io.OutputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Optional;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -19,12 +22,83 @@ import com.sakuraryoko.ap_scan.ApScan;
  */
 public class NbtUtils
 {
+	/**
+	 * See {@link #readNbtFromFileAsPath}
+	 */
+	@Nullable
+	public static CompoundTag readNbtFromFile(@Nonnull Path file)
+	{
+		return readNbtFromFile(file, NbtAccounter.unlimitedHeap());
+	}
+
+	/**
+	 * @deprecated Please migrate to using 'readNbtFromFile' again
+	 */
+	@Deprecated(forRemoval = true)
 	@Nullable
 	public static CompoundTag readNbtFromFileAsPath(@Nonnull Path file)
 	{
 		return readNbtFromFileAsPath(file, NbtAccounter.unlimitedHeap());
 	}
 
+	@Nullable
+	public static CompoundTag readNbtFromFile(@Nonnull Path file, NbtAccounter tracker)
+	{
+		if (!Files.exists(file) || !Files.isReadable(file))
+		{
+			return null;
+		}
+
+		InputStream is;
+
+		try
+		{
+			is = Files.newInputStream(file, StandardOpenOption.READ);
+		}
+		catch (Exception e)
+		{
+			ApScan.LOGGER.warn("readNbtFromFile: Failed to read NBT data from file '{}' (failed to create the input stream)", file.toAbsolutePath());
+			return null;
+		}
+
+		CompoundTag nbt = null;
+
+		if (is != null)
+		{
+			try
+			{
+				nbt = NbtIo.read(new DataInputStream(new BufferedInputStream(new GZIPInputStream(is))), tracker);
+			}
+			catch (Exception e)
+			{
+				try
+				{
+					is.close();
+					is = Files.newInputStream(file, StandardOpenOption.READ);
+					nbt = NbtIo.read(new DataInputStream(new BufferedInputStream(is)), tracker);
+				}
+				catch (Exception ignore) {}
+			}
+
+			try
+			{
+				is.close();
+			}
+			catch (Exception ignore) {}
+		}
+
+		if (nbt == null || nbt.getId() == Constants.NBT.TAG_END)
+		{
+			ApScan.LOGGER.warn("readNbtFromFile: Failed to read NBT data from file '{}'", file.toAbsolutePath());
+		}
+
+		return nbt;
+	}
+
+	/**
+	 * @deprecated Please migrate to using 'readNbtFromFile' again
+	 */
+	@Deprecated(forRemoval = true)
 	@Nullable
 	public static CompoundTag readNbtFromFileAsPath(@Nonnull Path file, NbtAccounter tracker)
 	{
@@ -46,10 +120,11 @@ public class NbtUtils
 	}
 
 	/**
-	 * Write the compound tag, gzipped, to the output stream.
+	 * @deprecated Please migrate to using 'writeCompoundTagToCompressedFile' again
 	 */
+	@Deprecated(forRemoval = true)
 	public static void writeCompressed(@Nonnull CompoundTag tag, @Nonnull OutputStream outputStream)
-    {
+	{
 		try
 		{
 			NbtIo.writeCompressed(tag, outputStream);
@@ -60,6 +135,10 @@ public class NbtUtils
 		}
 	}
 
+	/**
+	 * @deprecated Please migrate to using 'writeCompoundTagToCompressedFile' again
+	 */
+	@Deprecated(forRemoval = true)
 	public static void writeCompressed(@Nonnull CompoundTag tag, @Nonnull Path file)
 	{
 		try
@@ -70,6 +149,53 @@ public class NbtUtils
 		{
 			ApScan.LOGGER.warn("writeCompressed: Failed to write NBT data to file");
 		}
+	}
+
+	public static boolean writeCompoundTagToCompressedFile(@Nonnull CompoundTag tag, @Nonnull Path file)
+	{
+		return writeCompoundTagToCompressedFile(tag, file, "");
+	}
+
+	public static boolean writeCompoundTagToCompressedFile(@Nonnull CompoundTag tag, @Nonnull Path file, String tagName)
+	{
+		try (DataOutputStream os = new DataOutputStream(new BufferedOutputStream(new GZIPOutputStream(Files.newOutputStream(file)))))
+		{
+//			NbtIo.write(tag, dos);
+			return writeToNbtStream(tag, os, tagName);
+		}
+		catch (Exception e)
+		{
+			ApScan.LOGGER.warn("writeCompressedTest: Failed to write NBT data to file '{}'; {}", file.toAbsolutePath(), e.getLocalizedMessage());
+		}
+
+		return false;
+	}
+
+	public static boolean writeToNbtStream(@Nonnull Tag tag, @Nonnull DataOutput os)
+	{
+		return writeToNbtStream(tag, os, "");
+	}
+
+	public static boolean writeToNbtStream(@Nonnull Tag tag, @Nonnull DataOutput os, String tagName)
+	{
+		try
+		{
+			os.writeByte(tag.getId());
+
+			if (tag.getId() != Constants.NBT.TAG_END)
+			{
+				os.writeUTF(tagName);
+				tag.write(os);
+			}
+
+			return true;
+		}
+		catch (Exception e)
+		{
+			ApScan.LOGGER.warn("writeToNbtStream: Exception while writing NBT data; {}", e.getLocalizedMessage());
+		}
+
+		return false;
 	}
 
 	/**
