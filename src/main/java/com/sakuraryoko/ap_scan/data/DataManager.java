@@ -1,5 +1,6 @@
 package com.sakuraryoko.ap_scan.data;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.level.storage.LevelResource;
@@ -120,6 +121,14 @@ public class DataManager
 		this.audioPath = dir.resolve(AUDIO_PLAYER_DATA);
 		this.audioUnusedPath = dir.resolve(AUDIO_PLAYER_UNUSED);
 		this.playerDataPath = dir.resolve(LevelResource.PLAYER_DATA_DIR.id());
+
+		// 1.21.11 compat
+		Path oldPlayers = dir.resolve("playerdata");
+
+		if (Files.isDirectory(oldPlayers) && !Files.isDirectory(this.playerDataPath))
+		{
+			this.playerDataPath = oldPlayers;
+		}
 	}
 
 	public void updateReportsPath(String dir)
