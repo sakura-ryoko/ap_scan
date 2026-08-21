@@ -3,6 +3,7 @@ package com.sakuraryoko.ap_scan.mixin;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.sakuraryoko.ap_scan.data.ChunkData;
+import com.sakuraryoko.ap_scan.data.DataManager;
 import com.sakuraryoko.ap_scan.data.EntityData;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -28,13 +29,16 @@ public abstract class MixinRegionStorageUpgrader
 	{
 		CompoundTag fixTag = original.call(instance, chunkTag, defaultVersion, dataFixContextTag, targetVersion);
 
-		if (this.dataFixType.equals(DataFixTypes.ENTITY_CHUNK))
+		if (DataManager.getInstance().shouldRunTasks())
 		{
-			EntityData.processEntityData(fixTag, fixTag.getIntOr("DataVersion", -1));
-		}
-		else if (this.dataFixType.equals(DataFixTypes.CHUNK))
-		{
-			ChunkData.processChunkData(fixTag, fixTag.getIntOr("DataVersion", -1));
+			if (this.dataFixType.equals(DataFixTypes.ENTITY_CHUNK))
+			{
+				EntityData.processEntityData(fixTag, fixTag.getIntOr("DataVersion", -1));
+			}
+			else if (this.dataFixType.equals(DataFixTypes.CHUNK))
+			{
+				ChunkData.processChunkData(fixTag, fixTag.getIntOr("DataVersion", -1));
+			}
 		}
 
 		return fixTag;

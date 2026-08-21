@@ -12,7 +12,8 @@ public abstract class MixinWorldUpgrader
 	@ModifyConstant(method = "verifyChunkPosAndEraseCache", constant = { @Constant(stringValue = "sections")})
 	private static String ap_scan$modifyLightmapPurge(String constant)
 	{
-		if (DataManager.getInstance().shouldDisableLightmapPrune())
+		if (DataManager.getInstance().shouldRunTasks() &&
+			DataManager.getInstance().shouldDisableLightmapPrune())
 		{
 			return "notSections";
 		}

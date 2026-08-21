@@ -34,6 +34,7 @@ public class MixinMain
 					argsOnly = true, name = "args")
 	private static String[] ap_scan$onLaunchServer(String[] args)
 	{
+		if (!DataManager.getInstance().shouldRunTasks()) { return args; }
 		boolean hasForceUpgrade = false;
 		boolean hasEraseCache = false;
 		boolean hasRecreateRegionFiles = false;
@@ -180,10 +181,10 @@ public class MixinMain
 					   target = "Lnet/minecraft/world/level/storage/LevelStorageSource;createDefault(Ljava/nio/file/Path;)Lnet/minecraft/world/level/storage/LevelStorageSource;"))
 	private static LevelStorageSource ap_scan$onCaptureRootPath(Path path)
 	{
-		if (DataManager.getInstance().shouldRunReports())
+		if (DataManager.getInstance().shouldRunTasks() &&
+			DataManager.getInstance().shouldRunReports())
 		{
 			DataManager.getInstance().updateRootPath(path, true);
-
 		}
 		return LevelStorageSource.createDefault(path);
 	}
@@ -193,7 +194,7 @@ public class MixinMain
 					 target = "Lnet/minecraft/world/level/storage/LevelStorageSource;validateAndCreateAccess(Ljava/lang/String;)Lnet/minecraft/world/level/storage/LevelStorageSource$LevelStorageAccess;"))
 	private static LevelStorageSource.LevelStorageAccess ap_scan$onCaptureWorldPath(LevelStorageSource instance, String directoryName)
 	{
-		if (DataManager.getInstance().shouldRunReports())
+		if (DataManager.getInstance().shouldRunTasks() && DataManager.getInstance().shouldRunReports())
 		{
 			try
 			{
@@ -228,7 +229,8 @@ public class MixinMain
 	)
 	private static void ap_scan$onLaunchCancel(String[] args, CallbackInfo ci)
 	{
-		if (DataManager.getInstance().shouldRunReports())
+		if (DataManager.getInstance().shouldRunTasks() &&
+			DataManager.getInstance().shouldRunReports())
 		{
 			if (Reference.DEBUG)
 			{
@@ -250,9 +252,6 @@ public class MixinMain
 	                                               RegistryAccess registryAccess, boolean recreateRegionFiles,
 	                                               CallbackInfo ci)
 	{
-		if (DataManager.getInstance().shouldRunReports())
-		{
-			DataManager.getInstance().setRegistry(registryAccess);
-		}
+		DataManager.getInstance().setRegistry(registryAccess);
 	}
 }

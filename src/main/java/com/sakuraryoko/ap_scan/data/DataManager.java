@@ -30,6 +30,7 @@ public class DataManager
 	/**
 	 * Default settings (Non-testing these should be false)
 	 */
+	private final boolean runTasks = true;
 	private final boolean forceUpgrade = true;
 	private final boolean eraseCache = true;
 	private final boolean recreateRegionFiles = true;
@@ -183,7 +184,9 @@ public class DataManager
 
     public void toggleDisableLightmapPrune() { this.disableLightmapPruning = !this.disableLightmapPruning; }
 
-    public boolean shouldRunReports() { return this.runReports; }
+	public boolean shouldRunTasks() { return this.runTasks; }
+
+	public boolean shouldRunReports() { return this.runReports; }
 
 	public boolean shouldStopServer() { return this.stopServer; }
 
