@@ -1,30 +1,32 @@
 {
-	"schemaVersion": 1,
-	"id": "ap_scan",
-	"version": "${mod_version}",
-	"name": "AP Scan",
-	"description": "AP Scan",
-	"authors": [
-		"Sakura-Ryoko"
-	],
-	"contact": {
-		"homepage": "https://sakuraryoko.com/",
-		"sources": "https://sakuraryoko.com/"
-	},
-	"license": "LGPLv3",
-	"icon": "assets/ap_scan/icon.png",
-	"environment": "server",
-	"entrypoints": {
-		"main": [
+    "schemaVersion": 1,
+    "id": "ap_scan",
+    "version": "${mod_version}",
+    "name": "AP Scan",
+    "description": "AP Scan",
+    "authors": [
+        "Sakura-Ryoko"
+    ],
+    "contact": {
+        "homepage": "https://github.com/sakura-ryoko/ap_scan",
+        "sources": "https://github.com/sakura-ryoko/ap_scan"
+    },
+    "license": "LGPLv3",
+    "icon": "assets/ap_scan/icon.png",
+    "environment": "server",
+    "entrypoints": {
+        "main": [
             "com.sakuraryoko.ap_scan.ApScan"
-		]
-	},
-	"mixins": [
-		"ap_scan.mixins.json"
-	],
+        ]
+    },
+    "mixins": [
+        "ap_scan.mixins.json"
+    ],
     "accessWidener": "ap_scan.accesswidener",
-	"depends": {
-		"fabricloader": ">=0.19.2",
-		"minecraft": "~26.1-"
-	}
+    "depends": {
+        "fabricloader": ">=0.19.3",
+        "minecraft": "~26.2-",
+        "voicechat_api": "*",
+        "audioplayer": "*"
+    }
 }

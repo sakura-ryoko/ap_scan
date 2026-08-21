@@ -1,22 +1,27 @@
 plugins {
-	id 'net.fabricmc.fabric-loom' version '1.16.+'
+	id 'net.fabricmc.fabric-loom' version '1.17.+'
 }
 
 repositories {
 	maven { url = 'https://maven.fallenbreath.me/releases'
 		content {includeGroupAndSubgroups("me.fallenbreath")}
 	}
-//	maven { url = 'https://api.modrinth.com/maven' }
+	maven { url = 'https://api.modrinth.com/maven' }
 }
 
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-//	mappings loom.officialMojangMappings()
 	implementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
 	implementation "com.google.code.findbugs:jsr305:3.0.2"
 
 	include(api(fabricApi.module("fabric-api-base", project.fabric_api_version)))
 	include(api(fabricApi.module("fabric-resource-loader-v1", project.fabric_api_version)))
+	include(implementation("me.fallenbreath:conditional-mixin-fabric:${project.conditionalmixin_version}"))
+
+	// Voice Chat, Etc
+	implementation "maven.modrinth:simple-voice-chat:fabric-${project.voice_chat_version}+${project.voice_chat_mc_version}"
+	implementation "maven.modrinth:audioplayer:fabric-${project.audio_player_version}+${project.audio_player_mc_version}"
+	implementation "maven.modrinth:audioplayer-roleplay:fabric-${project.audio_player_roleplay_version}+${project.audio_player_roleplay_mc_version}"
 
 	runtimeOnly 'me.fallenbreath:mixin-auditor:0.2.0-u'
 }
