@@ -21,7 +21,7 @@ dependencies {
 	// Voice Chat, Etc
 	implementation "maven.modrinth:simple-voice-chat:fabric-${project.voice_chat_version}+${project.voice_chat_mc_version}"
 	implementation "maven.modrinth:audioplayer:fabric-${project.audio_player_version}+${project.audio_player_mc_version}"
-	implementation "maven.modrinth:audioplayer-roleplay:fabric-${project.audio_player_roleplay_version}+${project.audio_player_roleplay_mc_version}"
+//	implementation "maven.modrinth:audioplayer-roleplay:fabric-${project.audio_player_roleplay_version}+${project.audio_player_roleplay_mc_version}"
 
 	runtimeOnly 'me.fallenbreath:mixin-auditor:0.2.0-u'
 }
