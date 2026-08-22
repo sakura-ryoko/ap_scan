@@ -50,6 +50,7 @@ public class EntityData
 		{
 			CompoundTag fixedNbt = shouldFix ? DataFixerUtils.fixEntity(nbt, oldDataVersion) : nbt;
 
+//			System.out.printf("[ENT] (MATCHED) nbt [%s]\n", fixedNbt.toString());
 			if (InventoryUtils.hasNbtItems(fixedNbt))
 			{
 				Identifier identifier = Identifier.tryParse(id);
@@ -62,5 +63,9 @@ public class EntityData
 				NbtAudioUtil.processEachNbt(fixedNbt, registry, oldDataVersion, LocationType.ENTITY, getEntityDesc(defName, customName, uuid, pos));
 			}
 		}
+//		else
+//		{
+//			System.out.printf("[ENT] (NOT-MATCHED) nbt [%s]\n", nbt.toString());
+//		}
 	}
 }

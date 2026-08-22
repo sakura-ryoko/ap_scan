@@ -4,9 +4,12 @@ import java.io.IOException;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.UUID;
+
+import de.maxhenkel.audioplayer.audioloader.Metadata;
 
 import com.sakuraryoko.ap_scan.ApScan;
-import com.sakuraryoko.ap_scan.audio.AudioFile;
+import com.sakuraryoko.ap_scan.audio.AudioFileV2;
 
 public class DirectoryData
 {
@@ -25,7 +28,10 @@ public class DirectoryData
 			for (Path entry : stream)
 			{
 				String cleanName = entry.getFileName().toString().replace(".mp3", "").replace(".wav", "");
-				DataManager.getInstance().getPathList().add(new AudioFile(cleanName, "Directory Listing"));
+				Metadata meta = new Metadata(UUID.fromString(cleanName));
+
+				meta.setFileName("Directory Listing");
+				DataManager.getInstance().getPathList().add(new AudioFileV2(UUID.fromString(cleanName), meta));
 				count++;
 			}
 

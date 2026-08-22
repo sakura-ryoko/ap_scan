@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Locale;
 
 import com.sakuraryoko.ap_scan.ApScan;
-import com.sakuraryoko.ap_scan.audio.AudioDataLocation;
-import com.sakuraryoko.ap_scan.audio.AudioFile;
+import com.sakuraryoko.ap_scan.audio.AudioDataLocationV2;
 import com.sakuraryoko.ap_scan.audio.AudioFileList;
+import com.sakuraryoko.ap_scan.audio.AudioFileV2;
 import com.sakuraryoko.ap_scan.data.DataManager;
+import com.sakuraryoko.ap_scan.util.MetadataUtils;
 
 public class MissingFilesReport
 {
@@ -102,22 +103,24 @@ public class MissingFilesReport
 
 		for (int i = 0; i < world.size(); i++)
 		{
-			AudioFile entry = world.get(i);
+			AudioFileV2 entry = world.get(i);
 
 			if (entry != null && DataManager.getInstance().getPathList().getById(entry.id()) == null)
 			{
-				List<AudioDataLocation> locations = DataManager.getInstance().getLocationsList().getById(entry.id());
+				List<AudioDataLocationV2> locations = DataManager.getInstance().getLocationsList().getById(entry.id());
 
 				if (locations != null)
 				{
 					for (int j = 0; j < locations.size(); j++)
 					{
-						AudioDataLocation eachLoc = locations.get(j);
+						AudioDataLocationV2 eachLoc = locations.get(j);
 
 						results.add(
-								String.format("[%04d/%04d] [%s/'%s'] Located: [%s: %s]", i, j,
-								              entry.id(), entry.name(),
-								              eachLoc.type().name(), eachLoc.desc())
+								String.format("[%04d/%04d] [%s/meta: %s] // Located: [%s: %s] // %s", i, j,
+								              entry.id(), MetadataUtils.toString(entry.meta()),
+								              eachLoc.type().name(), eachLoc.desc(),
+								              eachLoc.data().asString()
+								)
 						);
 						locTotal++;
 					}
@@ -125,8 +128,9 @@ public class MissingFilesReport
 				else
 				{
 					results.add(
-							String.format("[%04d/0000] [%s/'%s'] Located: [UNKNOWN]", i,
-							              entry.id(), entry.name())
+							String.format("[%04d/0000] [%s/meta: %s] // Located: [UNKNOWN] // -", i,
+							              entry.id(), MetadataUtils.toString(entry.meta())
+							)
 					);
 				}
 
@@ -153,22 +157,24 @@ public class MissingFilesReport
 
 		for (int i = 0; i < world.size(); i++)
 		{
-			AudioFile entry = world.get(i);
+			AudioFileV2 entry = world.get(i);
 
 			if (entry != null && DataManager.getInstance().getConfigList().getById(entry.id()) == null)
 			{
-				List<AudioDataLocation> locations = DataManager.getInstance().getLocationsList().getById(entry.id());
+				List<AudioDataLocationV2> locations = DataManager.getInstance().getLocationsList().getById(entry.id());
 
 				if (locations != null)
 				{
 					for (int j = 0; j < locations.size(); j++)
 					{
-						AudioDataLocation eachLoc = locations.get(j);
+						AudioDataLocationV2 eachLoc = locations.get(j);
 
 						results.add(
-								String.format("[%04d/%04d] [%s/'%s'] Located: [%s: %s]", i, j,
-								              entry.id(), entry.name(),
-								              eachLoc.type().name(), eachLoc.desc())
+								String.format("[%04d/%04d] [%s/meta: %s] // Located: [%s: %s] // %s", i, j,
+								              entry.id(), MetadataUtils.toString(entry.meta()),
+								              eachLoc.type().name(), eachLoc.desc(),
+								              eachLoc.data().asString()
+								)
 						);
 						locTotal++;
 					}
@@ -176,8 +182,9 @@ public class MissingFilesReport
 				else
 				{
 					results.add(
-							String.format("[%04d/0000] [%s/'%s'] Located: [UNKNOWN]", i,
-							              entry.id(), entry.name())
+							String.format("[%04d/0000] [%s/meta: %s] // Located: [UNKNOWN] // -", i,
+							              entry.id(), MetadataUtils.toString(entry.meta())
+							)
 					);
 				}
 

@@ -1,14 +1,16 @@
-package com.sakuraryoko.ap_scan.audio;
+package com.sakuraryoko.ap_scan.audio.v1;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.jetbrains.annotations.NotNull;
 
 import com.sakuraryoko.ap_scan.ApScan;
+import com.sakuraryoko.ap_scan.audio.LocationType;
 
-public record AudioDataLocation(String id, LocationType type, String desc)
+@Deprecated
+public record AudioDataLocationV1(String id, LocationType type, String desc)
 {
-	public static AudioDataLocation fromJson(JsonElement element)
+	public static AudioDataLocationV1 fromJson(JsonElement element)
 	{
 		try
 		{
@@ -39,7 +41,7 @@ public record AudioDataLocation(String id, LocationType type, String desc)
 					return null;
 				}
 
-				return new AudioDataLocation(id, type, desc);
+				return new AudioDataLocationV1(id, type, desc);
 			}
 		}
 		catch (Exception err)

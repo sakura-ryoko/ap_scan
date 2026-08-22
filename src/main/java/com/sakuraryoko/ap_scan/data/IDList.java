@@ -1,7 +1,6 @@
 package com.sakuraryoko.ap_scan.data;
 
 import java.util.HashMap;
-import java.util.List;
 import com.google.common.collect.ImmutableList;
 
 public class IDList
@@ -9,7 +8,7 @@ public class IDList
 	/**
 	 * Entity ID's to check
 	 */
-	public static List<String> ENTITY_ID_LIST = ImmutableList.of(
+	public static ImmutableList<String> ENTITY_ID_LIST = ImmutableList.of(
 			"minecraft:armor_stand",
 			"minecraft:block_display",
 			"minecraft:glow_item_frame",
@@ -43,7 +42,7 @@ public class IDList
 	/**
 	 * Tile ID's to check
 	 */
-	public static List<String> TILE_ID_LIST = ImmutableList.of(
+	public static ImmutableList<String> TILE_ID_LIST = ImmutableList.of(
 			"minecraft:jukebox",
 			"minecraft:chest",
 			"minecraft:shulker_box",
@@ -63,10 +62,11 @@ public class IDList
 	/**
 	 * Valid Music Disc IDs
 	 */
-	public static List<String> ITEM_ID_LIST = ImmutableList.of(
+	public static ImmutableList<String> ITEM_ID_LIST = ImmutableList.of(
 			"minecraft:music_disc_13",
 			"minecraft:music_disc_cat",
 			"minecraft:music_disc_blocks",
+			"minecraft:music_disc_bounce",
 			"minecraft:music_disc_chirp",
 			"minecraft:music_disc_creator",
 			"minecraft:music_disc_creator_music_box",

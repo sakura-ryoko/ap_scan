@@ -1,8 +1,5 @@
 package com.sakuraryoko.ap_scan;
 
-import com.sakuraryoko.ap_scan.compat.audioplayer.AudioPlayerCompat;
-import com.sakuraryoko.ap_scan.compat.audioplayer_roleplay.AudioPlayerRoleplayCompat;
-import com.sakuraryoko.ap_scan.compat.voice_chat.VoiceChatCompat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +12,6 @@ public class ApScan implements ModInitializer
 	@Override
 	public void onInitialize()
 	{
-		LOGGER.info("VC: {}, AP: {}, APR: {}", VoiceChatCompat.getVersion(), AudioPlayerCompat.getVersion(), AudioPlayerRoleplayCompat.getVersion());
 	}
 
 	public static void debugLog(String str, Object... args)

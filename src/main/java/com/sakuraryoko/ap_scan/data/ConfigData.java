@@ -20,8 +20,25 @@ public class ConfigData
 		{
 			try
 			{
-				AudioFileList list = AudioFileList.fromJson(JsonParser.parseString(Files.readString(file)));
-				DataManager.getInstance().setConfigList(list);
+				AudioFileList list = null;
+
+				if (DataManager.getInstance().getAudioConfigVersion() == 2)
+				{
+					list = AudioFileList.fromJsonV2(JsonParser.parseString(Files.readString(file)));
+				}
+				else if (DataManager.getInstance().getAudioConfigVersion() == 1)
+				{
+					list = AudioFileList.fromJsonV1(JsonParser.parseString(Files.readString(file)));
+				}
+
+				if (list != null)
+				{
+					DataManager.getInstance().setConfigList(list);
+				}
+				else
+				{
+					ApScan.LOGGER.error("DataManager#readAudioFileListFromJson(): Error reading file: '{}'; Unsupported File version!", file.toAbsolutePath().toString());
+				}
 			}
 			catch (IOException err)
 			{

@@ -11,21 +11,23 @@ import org.jetbrains.annotations.VisibleForTesting;
 
 import com.sakuraryoko.ap_scan.ApScan;
 import com.sakuraryoko.ap_scan.Reference;
+import com.sakuraryoko.ap_scan.audio.v1.AudioFileV1;
+import com.sakuraryoko.ap_scan.data.DataManager;
 
 public class AudioFileList
 {
-	private final List<AudioFile> files;
+	private final List<AudioFileV2> files;
 
 	public AudioFileList() { this.files = new ArrayList<>(); }
 
-	public boolean contains(String id)
+	public boolean contains(UUID id)
 	{
 		AtomicBoolean bool = new AtomicBoolean(false);
 
 		this.files.forEach(
 				(entry) ->
 				{
-					if (entry.id().equalsIgnoreCase(id))
+					if (entry.id().equals(id))
 					{
 						bool.set(true);
 					}
@@ -36,11 +38,11 @@ public class AudioFileList
 	}
 
 	@Nullable
-	public AudioFile getById(String id)
+	public AudioFileV2 getById(UUID id)
 	{
-		for (AudioFile entry : this.files)
+		for (AudioFileV2 entry : this.files)
 		{
-			if (entry.id().equalsIgnoreCase(id))
+			if (entry.id().equals(id))
 			{
 				return entry;
 			}
@@ -50,10 +52,10 @@ public class AudioFileList
 	}
 
 	@Nullable
-	public AudioFile getByUuid(UUID uuid) { return this.getById(uuid.toString()); }
+	public AudioFileV2 getByString(String id) { return this.getById(UUID.fromString(id)); }
 
 	@Nullable
-	public AudioFile get(int index)
+	public AudioFileV2 get(int index)
 	{
 		if (index > -1 && index < this.size())
 		{
@@ -63,7 +65,7 @@ public class AudioFileList
 		return null;
 	}
 
-	public void set(int index, AudioFile file) throws IndexOutOfBoundsException
+	public void set(int index, AudioFileV2 file) throws IndexOutOfBoundsException
 	{
 		if (index > -1 && index < this.size())
 		{
@@ -75,7 +77,7 @@ public class AudioFileList
 		}
 	}
 
-	public void add(AudioFile file)
+	public void add(AudioFileV2 file)
 	{
 		// Don't duplicate
 		if (this.contains(file.id()))
@@ -88,32 +90,32 @@ public class AudioFileList
 
 	public void addList(AudioFileList otherList)
 	{
-		for (AudioFile entry : otherList.files)
+		for (AudioFileV2 entry : otherList.files)
 		{
 			if (Reference.DEBUG)
 			{
-				ApScan.LOGGER.warn("addList(): [STACKS] {}", entry.toString());
+				ApScan.LOGGER.warn("AudioFileList#addList(): [ADD] {}", entry.toString());
 			}
 
 			this.add(entry);
 		}
 	}
 
-	public void remove(AudioFile file) { this.files.remove(file); }
+	public void remove(AudioFileV2 file) { this.files.remove(file); }
 
 	public boolean isEmpty() { return this.files.isEmpty(); }
 
 	public int size() { return this.files.size(); }
 
-	public List<AudioFile> asList() { return this.files; }
+	public List<AudioFileV2> asList() { return this.files; }
 
-	public Iterable<AudioFile> iterator() { return Iterables.concat(this.files); }
+	public Iterable<AudioFileV2> iterator() { return Iterables.concat(this.files); }
 
-	public Stream<AudioFile> stream() { return this.files.stream(); }
+	public Stream<AudioFileV2> stream() { return this.files.stream(); }
 
 	public void clear() { this.files.clear(); }
 
-	public static AudioFileList fromJson(JsonElement element)
+	public static AudioFileList fromJsonV1(JsonElement element)
 	{
 		AudioFileList list = new AudioFileList();
 
@@ -128,11 +130,11 @@ public class AudioFileList
 				{
 					JsonElement entry = obj.get(key);
 
-					AudioFile file = AudioFile.fromJson(key, entry);
+					AudioFileV1 file = AudioFileV1.fromJson(key, entry);
 
 					if (file != null)
 					{
-						list.add(file);
+						list.add(AudioFileV2.fromV1(file));
 					}
 				}
 
@@ -141,9 +143,67 @@ public class AudioFileList
 		}
 		catch (Exception err)
 		{
-			ApScan.LOGGER.error("AudioFileList#fromJson(): Exception parsing Audio File list; {}", err.getLocalizedMessage());
+			ApScan.LOGGER.error("AudioFileList#fromJsonV1(): Exception parsing Audio File list; {}", err.getLocalizedMessage());
 		}
 
+		return list;
+	}
+
+	public static AudioFileList fromJsonV2(JsonElement element)
+	{
+		AudioFileList list = new AudioFileList();
+
+		try
+		{
+			if (element.isJsonObject())
+			{
+				JsonObject obj = element.getAsJsonObject();
+				JsonElement version = obj.get("version");
+
+				if (version == null)
+				{
+					ApScan.LOGGER.error("AudioFileList#fromJsonV2(): Error parsing Audio File list; Unexpected or missing version!");
+//					list.dump();
+					return list;
+				}
+				else
+				{
+					int ver = version.getAsInt();
+					DataManager.getInstance().setAudioConfigVersion(ver);
+				}
+
+				if (obj.has("files"))
+				{
+					JsonObject files = obj.getAsJsonObject("files");
+
+					if (files != null)
+					{
+						Set<String> set = files.keySet();
+
+						for (String key : set)
+						{
+							JsonElement entry = files.get(key);
+							UUID uuid = UUID.fromString(key);
+							AudioFileV2 file = AudioFileV2.fromJson(uuid, entry);
+
+							if (file != null)
+							{
+								list.add(file);
+							}
+						}
+					}
+
+//					list.dump();
+					return list;
+				}
+			}
+		}
+		catch (Exception err)
+		{
+			ApScan.LOGGER.error("AudioFileList#fromJsonV2(): Exception parsing Audio File list; {}", err.getLocalizedMessage());
+		}
+
+//		list.dump();
 		return list;
 	}
 

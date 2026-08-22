@@ -11,8 +11,10 @@ import java.util.List;
 import java.util.Locale;
 
 import com.sakuraryoko.ap_scan.ApScan;
-import com.sakuraryoko.ap_scan.audio.AudioFile;
 import com.sakuraryoko.ap_scan.audio.AudioFileList;
+import com.sakuraryoko.ap_scan.audio.AudioFileV2;
+import com.sakuraryoko.ap_scan.data.DirectoryData;
+import com.sakuraryoko.ap_scan.util.MetadataUtils;
 import com.sakuraryoko.ap_scan.data.DataManager;
 import com.sakuraryoko.ap_scan.util.FileNameUtils;
 
@@ -106,11 +108,11 @@ public class UnusedFilesReport
 
 		for (int i = 0; i < config.size(); i++)
 		{
-			AudioFile entry = config.get(i);
+			AudioFileV2 entry = config.get(i);
 
 			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.id()) == null)
 			{
-				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.id(), entry.name()));
+				results.add(String.format("[%04d] [%s/meta: %s]", i, entry.id(), MetadataUtils.toString(entry.meta())));
 				count++;
 			}
 
@@ -133,11 +135,11 @@ public class UnusedFilesReport
 
 		for (int i = 0; i < config.size(); i++)
 		{
-			AudioFile entry = config.get(i);
+			AudioFileV2 entry = config.get(i);
 
 			if (entry != null && DataManager.getInstance().getWorldList().getById(entry.id()) == null)
 			{
-				results.add(String.format("[%04d] [%s] name: '%s'", i, entry.id(), entry.name()));
+				results.add(String.format("[%04d] [%s/meta: %s]", i, entry.id(), MetadataUtils.toString(entry.meta())));
 				this.unusedFiles.add(entry);
 				count++;
 			}
@@ -183,13 +185,16 @@ public class UnusedFilesReport
 			}
 		}
 
-		try (DirectoryStream<Path> stream = Files.newDirectoryStream(fromDir))
+		try (DirectoryStream<Path> stream = Files.newDirectoryStream(fromDir, DirectoryData.AUDIO_FILE_FILTER))
 		{
 			int count = 0;
 
 			for (Path file : stream)
 			{
-				AudioFile audio = this.unusedFiles.getById(this.getNameWithoutExtension(file));
+				String fileName = this.getNameWithoutExtension(file);
+				if (fileName.equals(DataManager.AUDIO_PLAYER_CONFIG_V2) || fileName.equals(DataManager.AUDIO_PLAYER_CONFIG_V1)) { continue; }
+
+				AudioFileV2 audio = this.unusedFiles.getByString(fileName);
 
 				if (audio != null)
 				{

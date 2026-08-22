@@ -20,11 +20,12 @@ public class ProcessEvents
 	{
 		ConfigData.readAudioFileListFromJson();
 		DirectoryData.readAudioFileListFromPath(DataManager.getInstance().getAudioPath());
-		PlayerData.readAudioFileListFromPath(DataManager.getInstance().getPlayerDataPath());
 	}
 
 	public static void onShutdown()
 	{
+		PlayerData.readAudioFileListFromPath(DataManager.getInstance().getPlayerDataPath());
+
 		if (Reference.DEBUG)
 		{
 			ApScan.LOGGER.error("CONFIG LIST -->");

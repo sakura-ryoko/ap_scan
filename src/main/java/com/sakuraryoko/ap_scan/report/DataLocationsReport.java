@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Locale;
 
 import com.sakuraryoko.ap_scan.ApScan;
-import com.sakuraryoko.ap_scan.audio.AudioDataLocation;
+import com.sakuraryoko.ap_scan.audio.AudioDataLocationV2;
 import com.sakuraryoko.ap_scan.audio.LocationsList;
 import com.sakuraryoko.ap_scan.data.DataManager;
 
@@ -76,11 +76,14 @@ public class DataLocationsReport
 
 		for (int i = 0; i < list.size(); i++)
 		{
-			AudioDataLocation entry = list.get(i);
+			AudioDataLocationV2 entry = list.get(i);
 
 			if (entry != null)
 			{
-				results.add(String.format("[%04d] [%s], [%s: %s]", i, entry.id(), entry.type().toString(), entry.desc()));
+				results.add(String.format("[%04d] [%s], [%s: %s] // %s", i,
+				                          entry.id(), entry.type().toString(), entry.desc(),
+				                          entry.data().asString())
+				);
 				total++;
 			}
 		}

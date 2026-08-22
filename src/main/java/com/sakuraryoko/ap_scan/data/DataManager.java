@@ -46,8 +46,10 @@ public class DataManager
 	public static final String ROOT_DEFAULT 				= ".";
 	public static final String WORLD_DEFAULT 				= "world";
 	public static final String AUDIO_PLAYER_DATA			= "audio_player_data";
+	public static final String AUDIO_PLAYER_RP			    = "audioplayer_rp";
 	public static final String AUDIO_PLAYER_UNUSED			= "audio_player_unused";
-	public static final String AUDIO_PLAYER_CONFIG			= "file-name-mappings";
+	public static final String AUDIO_PLAYER_CONFIG_V1   	= "file-name-mappings";
+	public static final String AUDIO_PLAYER_CONFIG_V2   	= "meta";
 	public static final String REPORTS_FOLDER				= "audioplayer_reports";
 
 	/**
@@ -57,10 +59,13 @@ public class DataManager
 	private Path rootPath;
 	private Path worldPath;
 	private Path audioPath;
+	private Path audioRPPath;
+	private Path audioConfigPath;
 	private Path audioUnusedPath;
 	private Path playerDataPath;
 	private Path reportsPath;
 	private String reportName;
+	private int audioConfigVersion;
 
 	private final LocationsList locationsList;
 	private final AudioFileList pathList;
@@ -87,13 +92,19 @@ public class DataManager
 
 	public Path getAudioPath() { return this.audioPath; }
 
+	public Path getAudioRPPath() { return this.audioRPPath; }
+
 	public Path getAudioUnusedPath() { return this.audioUnusedPath; }
 
-	public Path getAudioConfigFile() { return this.audioPath.resolve(AUDIO_PLAYER_CONFIG+".json"); }
+	public Path getAudioConfigFile() { return this.audioConfigPath; }
 
 	public Path getPlayerDataPath() { return this.playerDataPath; }
 
 	public Path getReportsPath() { return this.reportsPath; }
+
+	public int getAudioConfigVersion() { return this.audioConfigVersion; }
+
+	public void setAudioConfigVersion(int version) { this.audioConfigVersion = version; }
 
 	public void updateRootPath(Path dir, boolean debugOk)
 	{
@@ -120,8 +131,38 @@ public class DataManager
 
 		this.worldPath = dir;
 		this.audioPath = dir.resolve(AUDIO_PLAYER_DATA);
+		this.audioRPPath = dir.resolve(AUDIO_PLAYER_RP);
+		this.audioConfigPath = this.audioPath.resolve(AUDIO_PLAYER_CONFIG_V2+".json");
 		this.audioUnusedPath = dir.resolve(AUDIO_PLAYER_UNUSED);
 		this.playerDataPath = dir.resolve(LevelResource.PLAYER_DATA_DIR.id());
+
+		if (Files.isDirectory(this.audioPath))
+		{
+			if (!Files.exists(this.audioConfigPath))
+			{
+				ApScan.LOGGER.error("No Audio config file: '{}' (V2) found!", this.audioConfigPath.toAbsolutePath().toString());
+				this.audioConfigPath = this.audioPath.resolve(AUDIO_PLAYER_CONFIG_V1 + ".json");
+
+				if (Files.exists(this.audioConfigPath))
+				{
+					this.audioConfigVersion = 1;
+				}
+				else
+				{
+					ApScan.LOGGER.error("No Audio config file: '{}' (V1) found!", this.audioConfigPath.toAbsolutePath().toString());
+					this.audioConfigPath = this.audioPath.resolve(AUDIO_PLAYER_CONFIG_V2 + ".json");
+				}
+			}
+			else
+			{
+				this.audioConfigVersion = 2;
+			}
+		}
+		else
+		{
+			ApScan.LOGGER.error("Audio Data directory: '{}' not found!", this.audioPath.toAbsolutePath().toString());
+			this.audioConfigVersion = 2;
+		}
 
 		// 1.21.11 compat
 		Path oldPlayers = dir.resolve("playerdata");

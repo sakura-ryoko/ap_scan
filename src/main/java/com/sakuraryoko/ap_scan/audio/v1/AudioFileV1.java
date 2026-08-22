@@ -1,4 +1,4 @@
-package com.sakuraryoko.ap_scan.audio;
+package com.sakuraryoko.ap_scan.audio.v1;
 
 import com.google.gson.JsonElement;
 import org.jetbrains.annotations.NotNull;
@@ -6,16 +6,17 @@ import org.jetbrains.annotations.Nullable;
 
 import com.sakuraryoko.ap_scan.ApScan;
 
-public record AudioFile(String id, String name)
+@Deprecated
+public record AudioFileV1(String id, String name)
 {
 	@Nullable
-	public static AudioFile fromJson(String key, JsonElement element)
+	public static AudioFileV1 fromJson(String key, JsonElement element)
 	{
 		try
 		{
 			if (element.isJsonPrimitive())
 			{
-				return new AudioFile(key, element.getAsString());
+				return new AudioFileV1(key, element.getAsString());
 			}
 		}
 		catch (Exception err)

@@ -16,18 +16,18 @@ import com.sakuraryoko.ap_scan.Reference;
 
 public class LocationsList
 {
-	private final Int2ObjectArrayMap<AudioDataLocation> locations;
+	private final Int2ObjectArrayMap<AudioDataLocationV2> locations;
 
 	public LocationsList() { this.locations = new Int2ObjectArrayMap<>(); }
 
-	public boolean contains(String id)
+	public boolean contains(UUID id)
 	{
 		AtomicBoolean bool = new AtomicBoolean(false);
 
 		this.locations.forEach(
 				(i, data) ->
 				{
-					if (data.id().equalsIgnoreCase(id))
+					if (data.id().equals(id))
 					{
 						bool.set(true);
 					}
@@ -38,14 +38,14 @@ public class LocationsList
 	}
 
 	@Nullable
-	public List<AudioDataLocation> getById(String id)
+	public List<AudioDataLocationV2> getById(UUID id)
 	{
-		List<AudioDataLocation> list = new ArrayList<>();
+		List<AudioDataLocationV2> list = new ArrayList<>();
 
 		this.locations.forEach(
 				(i, data) ->
 				{
-					if (data.id().equalsIgnoreCase(id))
+					if (data.id().equals(id))
 					{
 						list.add(data);
 					}
@@ -55,10 +55,10 @@ public class LocationsList
 	}
 
 	@Nullable
-	public List<AudioDataLocation> getByUuid(UUID uuid) { return this.getById(uuid.toString()); }
+	public List<AudioDataLocationV2> getByString(String id) { return this.getById(UUID.fromString(id)); }
 
 	@Nullable
-	public AudioDataLocation get(int index)
+	public AudioDataLocationV2 get(int index)
 	{
 		if (index > -1 && index < this.size())
 		{
@@ -68,7 +68,7 @@ public class LocationsList
 		return null;
 	}
 
-	public void set(int index, AudioDataLocation file) throws IndexOutOfBoundsException
+	public void set(int index, AudioDataLocationV2 file) throws IndexOutOfBoundsException
 	{
 		if (index > -1 && index < this.size())
 		{
@@ -80,7 +80,7 @@ public class LocationsList
 		}
 	}
 
-	public void add(AudioDataLocation file)
+	public void add(AudioDataLocationV2 file)
 	{
 		this.locations.put(this.locations.size(), file);
 	}
@@ -92,7 +92,7 @@ public class LocationsList
 				{
 					if (Reference.DEBUG)
 					{
-						ApScan.LOGGER.warn("addList(): [STACKS] {}", data.toString());
+						ApScan.LOGGER.warn("LocationsList#addList(): [ADD] {}", data.toString());
 					}
 
 					this.add(data);
@@ -103,9 +103,9 @@ public class LocationsList
 
 	public int size() { return this.locations.size(); }
 
-	public ImmutableList<AudioDataLocation> asList()
+	public ImmutableList<AudioDataLocationV2> asList()
 	{
-		ImmutableList.Builder<AudioDataLocation> builder = new ImmutableList.Builder<>();
+		ImmutableList.Builder<AudioDataLocationV2> builder = new ImmutableList.Builder<>();
 
 		this.locations.forEach(
 				(i, data) ->
@@ -129,7 +129,7 @@ public class LocationsList
 
 				for (int i = 0; i < arr.size(); i++)
 				{
-					AudioDataLocation location = AudioDataLocation.fromJson(arr.get(i));
+					AudioDataLocationV2 location = AudioDataLocationV2.fromJson(arr.get(i));
 
 					if (location != null)
 					{

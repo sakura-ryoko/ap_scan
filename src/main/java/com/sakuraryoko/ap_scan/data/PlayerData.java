@@ -63,7 +63,7 @@ public class PlayerData
 		final Vec3 pos = fixedNbt.read(NbtKeys.POS, Vec3.CODEC).orElse(Vec3.ZERO);
 		final String desc = getPlayerDesc(uuid, pos);
 
-//		System.out.printf("PLAYER: nbt [%s]\n", fixedNbt.toString());
+		System.out.printf("PLAYER: nbt [%s]\n", fixedNbt.toString());
 
 		try (NbtInventory enderInv = NbtInventory.fromNbtList(enderItems, false, registry))
 		{

@@ -302,6 +302,7 @@ public class InventoryUtils
 			slotCount = NbtInventory.MAX_SIZE;
 		}
 
+		if (nbt.contains(NbtKeys.LOOT_TABLE)) { return null; }
 		if (nbt.contains(NbtKeys.ITEMS))
 		{
 			// Standard 'Items' tag for most Block Entities --
